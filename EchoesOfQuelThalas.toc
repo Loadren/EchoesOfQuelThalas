@@ -1,0 +1,13 @@
+## Interface: 120001
+## Title: Echoes of Quel'Thalas
+## Notes: Replaces Midnight zone music with the original TBC soundtrack across Quel'Thalas
+## Version: @project-version@
+## X-Curse-Project-ID: CHANGE_ME
+## SavedVariables: EchoesOfQuelThalasDB
+
+Locale.lua
+Tracks.lua
+Packs.lua
+Zones.lua
+Engine.lua
+Options.lua

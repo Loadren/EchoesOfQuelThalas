@@ -1,0 +1,9 @@
+package-as: EchoesOfQuelThalas
+enable-nolib-creation: no
+
+ignore:
+  - tools
+  - README.md
+  - .github
+  - .cursor
+  - .gitignore
