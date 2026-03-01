@@ -7,7 +7,7 @@ local DEFAULT_DUR   = 90
 local SILENCE_TRACK = "Interface\\AddOns\\EchoesOfQuelThalas\\silence.ogg"
 
 local function GetSilenceGap()   return (ns.db and ns.db.silenceGap)   or 4 end
-local function GetCrossfadeSec() return (ns.db and ns.db.crossfadeSec) or 3 end
+local function GetCrossfadeSec() return (ns.db and ns.db.crossfadeSec) or 5 end
 
 local TRACK_NAMES   = {}
 for name, id in pairs(ns.Tracks) do
@@ -320,6 +320,14 @@ local function CheckZone()
         return
     end
 
+    local inInstance = IsInInstance()
+    if inInstance then
+        if isPlaying or pausedForLoop then
+            StopCurrentMusic(wasLoadingScreen)
+        end
+        return
+    end
+
     local mapId = C_Map.GetBestMapForUnit("player")
     local zoneId, zoneConfig = ResolveZone(mapId)
 
@@ -381,8 +389,9 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         db = EchoesOfQuelThalasDB
         if db.verbose == nil then db.verbose = false end
         if db.silenceGap == nil then db.silenceGap = 4 end
-        if db.crossfadeSec == nil then db.crossfadeSec = 3 end
+        if db.crossfadeSec == nil then db.crossfadeSec = 5 end
         if db.zoneOverrides == nil then db.zoneOverrides = {} end
+        if db.replaceVoices == nil then db.replaceVoices = true end
         enabled = db.enabled
         ns.db = db
 
