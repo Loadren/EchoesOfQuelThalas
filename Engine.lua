@@ -391,7 +391,6 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         if db.silenceGap == nil then db.silenceGap = 4 end
         if db.crossfadeSec == nil then db.crossfadeSec = 5 end
         if db.zoneOverrides == nil then db.zoneOverrides = {} end
-        if db.replaceVoices == nil then db.replaceVoices = true end
         enabled = db.enabled
         ns.db = db
 

@@ -598,20 +598,6 @@ function ns.InitOptions()
             "How long the fade-to-silence transition lasts when leaving a configured zone.")
     end
 
-    -- Replace NPC Voices
-    do
-        local setting = Settings.RegisterAddOnSetting(category,
-            "EOQT_REPLACE_VOICES", "replaceVoices", db,
-            Settings.VarType.Boolean, "Replace NPC Voices", true)
-        setting:SetValueChangedCallback(function(_, val)
-            if ns.SetReplaceVoices then
-                ns.SetReplaceVoices(val)
-            end
-        end)
-        Settings.CreateCheckbox(category, setting,
-            "Mute Midnight-era Blood Elf NPC gossip voices and play the original TBC-era voices instead.")
-    end
-
     Settings.RegisterAddOnCategory(category)
     ns.settingsCategoryID = category:GetID()
 
