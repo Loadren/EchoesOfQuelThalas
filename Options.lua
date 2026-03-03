@@ -6,16 +6,26 @@ local addonName, ns = ...
 --
 -- Section 1: General settings  (vertical layout — native controls)
 -- Section 2: Zone mapping      (canvas subcategory — custom frame)
+-- Section 3: Music Packs       (canvas subcategory — custom frame)
 -- ============================================================
 
 local PACKS      = ns.MusicPacks
 local PACK_ORDER = ns.MusicPackOrder
 local ZONES      = ns.ZoneMusic
+local DURATIONS  = ns.TrackDurations
 local L          = ns.L
 local PREFIX     = "|cffFFD700Echoes of Quel'Thalas:|r "
 
-local ROW_HEIGHT = 24
-local INDENT     = 20
+local ROW_HEIGHT   = 24
+local INDENT       = 20
+local TRACK_ROW_H  = 22
+local PACK_HDR_H   = 26
+
+-- Reverse lookup: FileDataID → track name constant
+local TRACK_NAMES = {}
+for name, id in pairs(ns.Tracks) do
+    TRACK_NAMES[id] = name
+end
 
 -- ============================================================
 -- 1. General Settings (Vertical Layout)
@@ -24,11 +34,6 @@ local INDENT     = 20
 -- settings panel sees it immediately. Controls are added later
 -- from ns.InitOptions(), called synchronously by Engine.lua
 -- inside its ADDON_LOADED handler once ns.db is ready.
---
--- Uses the 11.0.2+ Settings API:
---   Settings.RegisterAddOnSetting(category, variable, variableKey,
---       variableTbl, varType, name, defaultValue)
---   setting:SetValueChangedCallback(fn)
 -- ============================================================
 
 local category = Settings.RegisterVerticalLayoutCategory("Echoes of Quel'Thalas")
@@ -38,7 +43,7 @@ local category = Settings.RegisterVerticalLayoutCategory("Echoes of Quel'Thalas"
 -- ============================================================
 
 local mapperFrame, scrollChild
-local rowPool = {}
+local rowPool    = {}
 local activeRows = {}
 
 -- ----- helpers ------------------------------------------------
@@ -94,13 +99,13 @@ local function AcquireRow(parent)
         row.label:SetPoint("LEFT", 0, 0)
         row.label:SetJustifyH("LEFT")
 
-        row.packBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
-        row.packBtn:SetSize(160, 22)
-        row.packBtn:SetPoint("RIGHT", row, "RIGHT", -32, 0)
-
         row.actionBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
         row.actionBtn:SetSize(24, 22)
-        row.actionBtn:SetPoint("LEFT", row.packBtn, "RIGHT", 4, 0)
+        row.actionBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+
+        row.packBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.packBtn:SetSize(160, 22)
+        row.packBtn:SetPoint("RIGHT", row.actionBtn, "LEFT", -4, 0)
     end
     row:SetParent(parent)
     row:Show()
@@ -142,7 +147,7 @@ local function RefreshMapper()
     ReleaseRows()
 
     local db = ns.db
-    local y = 0
+    local y  = 0
 
     -- Gather all mapIds: defaults + user custom
     local allZones = {}
@@ -162,10 +167,10 @@ local function RefreshMapper()
     table.sort(allZones, function(a, b) return a.mapId < b.mapId end)
 
     for _, entry in ipairs(allZones) do
-        local mapId = entry.mapId
+        local mapId     = entry.mapId
         local zoneConfig = ZONES[mapId]
-        local ov = db.zoneOverrides and db.zoneOverrides[mapId]
-        local isCustom = entry.isCustom
+        local ov        = db.zoneOverrides and db.zoneOverrides[mapId]
+        local isCustom  = entry.isCustom
 
         -- Zone header row
         local row = AcquireRow(scrollChild)
@@ -240,7 +245,7 @@ local function RefreshMapper()
         table.sort(subKeys, function(a, b) return a.key < b.key end)
 
         for _, sub in ipairs(subKeys) do
-            local sKey = sub.key
+            local sKey   = sub.key
             local subRow = AcquireRow(scrollChild)
             subRow:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", INDENT, -y)
             subRow:SetPoint("RIGHT", scrollChild, "RIGHT", 0, 0)
@@ -250,7 +255,7 @@ local function RefreshMapper()
             subRow.label:SetText(subName)
             subRow.label:SetFontObject(GameFontHighlightSmall)
 
-            local subPackKey = (ov and ov.subzones and ov.subzones[sKey]) or "DEFAULT"
+            local subPackKey    = (ov and ov.subzones and ov.subzones[sKey]) or "DEFAULT"
             local defaultSubPack = zoneConfig and zoneConfig.subzones and zoneConfig.subzones[sKey]
             subRow.packBtn:SetText(GetPackLabel(subPackKey, defaultSubPack))
             subRow.packBtn:SetScript("OnClick", function(self)
@@ -266,7 +271,6 @@ local function RefreshMapper()
                     else
                         db.zoneOverrides[mapId].subzones[sKey] = key
                     end
-                    -- Clean up empty override entries
                     if not next(db.zoneOverrides[mapId].subzones) then
                         db.zoneOverrides[mapId].subzones = nil
                     end
@@ -316,7 +320,7 @@ local function RefreshMapper()
             y = y + ROW_HEIGHT
         end
 
-        -- "+ Add Subzone" button
+        -- "+ Add Subzone" inline row
         local addSubRow = AcquireRow(scrollChild)
         addSubRow:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", INDENT, -y)
         addSubRow:SetPoint("RIGHT", scrollChild, "RIGHT", 0, 0)
@@ -339,49 +343,6 @@ local function RefreshMapper()
 end
 
 -- ----- static popups ------------------------------------------
-
-StaticPopupDialogs["EOQT_ADD_ZONE_ID"] = {
-    text = "Enter UiMapID (use /eoqt now in-game to find it):",
-    button1 = "Add",
-    button2 = "Cancel",
-    hasEditBox = true,
-    OnAccept = function(self)
-        local text = self.editBox:GetText():trim()
-        local mapId = tonumber(text)
-        if not mapId then
-            print(PREFIX .. "Invalid map ID: " .. text)
-            return
-        end
-        local db = ns.db
-        if not db then return end
-        if ZONES[mapId] or (db.zoneOverrides[mapId] and db.zoneOverrides[mapId].isCustom) then
-            print(PREFIX .. "Zone " .. mapId .. " already exists.")
-            return
-        end
-        local info = C_Map.GetMapInfo(mapId)
-        local name = info and info.name or ("Zone " .. mapId)
-        db.zoneOverrides[mapId] = {
-            isCustom = true,
-            name = name,
-            pack = "EVERSONG",
-            subzones = {},
-        }
-        print(PREFIX .. "Added zone: " .. name .. " (" .. mapId .. ")")
-        ns.ForceCheckZone()
-        RefreshMapper()
-    end,
-    EditBoxOnEnterPressed = function(self)
-        local parent = self:GetParent()
-        parent.button1:Click()
-    end,
-    EditBoxOnEscapePressed = function(self)
-        self:GetParent():Hide()
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3,
-}
 
 StaticPopupDialogs["EOQT_ADD_SUBZONE"] = {
     text = "Enter subzone name (use /eoqt now for the exact text):",
@@ -428,7 +389,6 @@ StaticPopupDialogs["EOQT_ADD_SUBZONE"] = {
 local function InitZoneMapper()
     mapperFrame = CreateFrame("Frame", "EoQT_ZoneMapper", UIParent)
 
-    -- Title
     local title = mapperFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
     title:SetText("Zone Music Mapping")
@@ -439,47 +399,9 @@ local function InitZoneMapper()
     desc:SetWidth(540)
     desc:SetJustifyH("LEFT")
 
-    -- Top buttons
-    local btnAddCurrent = CreateFrame("Button", nil, mapperFrame, "UIPanelButtonTemplate")
-    btnAddCurrent:SetSize(160, 24)
-    btnAddCurrent:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
-    btnAddCurrent:SetText("+ Add Current Zone")
-    btnAddCurrent:SetScript("OnClick", function()
-        local db = ns.db
-        if not db then return end
-        local mapId = C_Map.GetBestMapForUnit("player")
-        if not mapId then
-            print(PREFIX .. "Cannot determine current zone.")
-            return
-        end
-        if ZONES[mapId] or (db.zoneOverrides[mapId] and db.zoneOverrides[mapId].isCustom) then
-            print(PREFIX .. "Zone " .. mapId .. " is already configured.")
-            return
-        end
-        local info = C_Map.GetMapInfo(mapId)
-        local name = info and info.name or ("Zone " .. mapId)
-        db.zoneOverrides[mapId] = {
-            isCustom = true,
-            name = name,
-            pack = "EVERSONG",
-            subzones = {},
-        }
-        print(PREFIX .. "Added zone: " .. name .. " (" .. mapId .. ")")
-        ns.ForceCheckZone()
-        RefreshMapper()
-    end)
-
-    local btnAddById = CreateFrame("Button", nil, mapperFrame, "UIPanelButtonTemplate")
-    btnAddById:SetSize(140, 24)
-    btnAddById:SetPoint("LEFT", btnAddCurrent, "RIGHT", 8, 0)
-    btnAddById:SetText("+ Add Zone by ID")
-    btnAddById:SetScript("OnClick", function()
-        StaticPopup_Show("EOQT_ADD_ZONE_ID")
-    end)
-
     local btnAddSubzone = CreateFrame("Button", nil, mapperFrame, "UIPanelButtonTemplate")
     btnAddSubzone:SetSize(170, 24)
-    btnAddSubzone:SetPoint("LEFT", btnAddById, "RIGHT", 8, 0)
+    btnAddSubzone:SetPoint("TOPLEFT", desc, "BOTTOMLEFT", 0, -10)
     btnAddSubzone:SetText("+ Add Current Subzone")
     btnAddSubzone:SetScript("OnClick", function()
         local db = ns.db
@@ -521,25 +443,280 @@ local function InitZoneMapper()
         RefreshMapper()
     end)
 
-    -- Scroll frame
     local scrollFrame = CreateFrame("ScrollFrame", "EoQT_ZoneMapperScroll", mapperFrame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", btnAddCurrent, "BOTTOMLEFT", 0, -8)
+    scrollFrame:SetPoint("TOPLEFT", btnAddSubzone, "BOTTOMLEFT", 0, -8)
     scrollFrame:SetPoint("BOTTOMRIGHT", mapperFrame, "BOTTOMRIGHT", -26, 8)
 
     scrollChild = CreateFrame("Frame", nil, scrollFrame)
     scrollChild:SetWidth(scrollFrame:GetWidth() or 560)
     scrollFrame:SetScrollChild(scrollChild)
-
-    -- Resize the scroll child width when the scroll frame resizes
     scrollFrame:SetScript("OnSizeChanged", function(self, w)
         scrollChild:SetWidth(w)
     end)
 
-    mapperFrame:SetScript("OnShow", function()
-        RefreshMapper()
-    end)
+    mapperFrame:SetScript("OnShow", function() RefreshMapper() end)
 
     local subCategory = Settings.RegisterCanvasLayoutSubcategory(category, mapperFrame, "Zone Mapping")
+    subCategory.ID = subCategory:GetID()
+end
+
+-- ============================================================
+-- 3. Music Packs (Canvas Subcategory)
+-- ============================================================
+
+local packListFrame, packScrollChild
+local packHdrPool   = {}
+local packTrkPool   = {}
+local activeHdrs    = {}
+local activeTrks    = {}
+local expandedPacks = {}
+local previewingFdid = nil
+local previewBtnRef  = nil
+
+-- ----- track helpers ------------------------------------------
+
+local function GetAllPackTracks(packKey)
+    local pack = PACKS[packKey]
+    if not pack then return {} end
+    local seen, tracks = {}, {}
+    local function addList(list)
+        if not list then return end
+        for _, id in ipairs(list) do
+            if not seen[id] then seen[id] = true; tracks[#tracks + 1] = id end
+        end
+    end
+    if pack.intro then seen[pack.intro] = true; tracks[#tracks + 1] = pack.intro end
+    addList(pack.day)
+    addList(pack.night)
+    addList(pack.any)
+    return tracks
+end
+
+local function StopActivePreview()
+    if previewingFdid and ns.StopPreview then ns.StopPreview() end
+    if previewBtnRef then previewBtnRef:SetText("Play") end
+    previewingFdid = nil
+    previewBtnRef  = nil
+end
+
+-- ----- pack header row recycling ------------------------------
+
+local function AcquirePackHdr(parent)
+    local row = tremove(packHdrPool)
+    if not row then
+        row = CreateFrame("Button", nil, parent)
+        row:SetHeight(PACK_HDR_H)
+        row:SetNormalFontObject(GameFontNormal)
+        row:SetHighlightTexture("Interface/QuestFrame/UI-QuestTitleHighlight", "ADD")
+
+        row.arrow = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        row.arrow:SetPoint("LEFT", 4, 0)
+        row.arrow:SetWidth(14)
+        row.arrow:SetJustifyH("LEFT")
+
+        row.nameStr = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        row.nameStr:SetPoint("LEFT", row.arrow, "RIGHT", 2, 0)
+        row.nameStr:SetJustifyH("LEFT")
+
+        row.countStr = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.countStr:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+        row.countStr:SetJustifyH("RIGHT")
+    end
+    row:SetParent(parent)
+    row:Show()
+    return row
+end
+
+local function ReleasePackHdrs()
+    for _, row in ipairs(activeHdrs) do
+        row:Hide()
+        row:ClearAllPoints()
+        row:SetScript("OnClick", nil)
+        packHdrPool[#packHdrPool + 1] = row
+    end
+    wipe(activeHdrs)
+end
+
+-- ----- track row recycling ------------------------------------
+
+local function AcquirePackTrk(parent)
+    local row = tremove(packTrkPool)
+    if not row then
+        row = CreateFrame("Frame", nil, parent)
+        row:SetHeight(TRACK_ROW_H)
+
+        row.check = CreateFrame("CheckButton", nil, row, "UICheckButtonTemplate")
+        row.check:SetSize(20, 20)
+        row.check:SetPoint("LEFT", 4, 0)
+
+        row.nameLabel = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.nameLabel:SetPoint("LEFT", row.check, "RIGHT", 4, 0)
+        row.nameLabel:SetWidth(260)
+        row.nameLabel:SetJustifyH("LEFT")
+        row.nameLabel:SetWordWrap(false)
+
+        row.durLabel = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.durLabel:SetPoint("LEFT", row.nameLabel, "RIGHT", 4, 0)
+        row.durLabel:SetWidth(50)
+        row.durLabel:SetJustifyH("RIGHT")
+
+        row.playBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.playBtn:SetSize(44, 20)
+        row.playBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    end
+    row:SetParent(parent)
+    row:Show()
+    return row
+end
+
+local function ReleasePackTrks()
+    for _, row in ipairs(activeTrks) do
+        row:Hide()
+        row:ClearAllPoints()
+        row.check:SetScript("OnClick", nil)
+        row.playBtn:SetScript("OnClick", nil)
+        packTrkPool[#packTrkPool + 1] = row
+    end
+    wipe(activeTrks)
+end
+
+-- ----- main render --------------------------------------------
+
+local function RefreshPackList()
+    if not packScrollChild or not ns.db then return end
+    StopActivePreview()
+    ReleasePackHdrs()
+    ReleasePackTrks()
+
+    local db = ns.db
+    local y  = 0
+
+    for _, packKey in ipairs(PACK_ORDER) do
+        local pack   = PACKS[packKey]
+        local tracks = GetAllPackTracks(packKey)
+        local isOpen = expandedPacks[packKey]
+
+        -- Pack header
+        local hdr = AcquirePackHdr(packScrollChild)
+        hdr:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", 0, -y)
+        hdr:SetPoint("RIGHT",   packScrollChild, "RIGHT",   0,  0)
+
+        hdr.arrow:SetText(isOpen and "▼" or "▶")
+        hdr.nameStr:SetText(pack.label)
+        hdr.countStr:SetText("|cff888888" .. #tracks .. " track" .. (#tracks == 1 and "" or "s") .. "|r")
+
+        local capturedKey = packKey
+        hdr:SetScript("OnClick", function()
+            expandedPacks[capturedKey] = not expandedPacks[capturedKey]
+            RefreshPackList()
+        end)
+
+        activeHdrs[#activeHdrs + 1] = hdr
+        y = y + PACK_HDR_H
+
+        if isOpen then
+            local disabledTbl = (db.packOverrides and db.packOverrides[packKey] and db.packOverrides[packKey].disabled) or {}
+            local dbd         = pack.disabledByDefault
+
+            local function IsTrackDisabled(fdid)
+                local v = disabledTbl[fdid]
+                if v == true  then return true  end
+                if v == false then return false end
+                return dbd and dbd[fdid] or false
+            end
+
+            for _, fdid in ipairs(tracks) do
+                local trow = AcquirePackTrk(packScrollChild)
+                trow:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", INDENT, -y)
+                trow:SetPoint("RIGHT",   packScrollChild, "RIGHT",    0,      0)
+
+                local trackName = TRACK_NAMES[fdid] or tostring(fdid)
+                local dur       = DURATIONS and DURATIONS[fdid]
+                trow.nameLabel:SetText(trackName)
+                trow.durLabel:SetText(dur and string.format("%ds", math.floor(dur)) or "?")
+
+                trow.check:SetChecked(not IsTrackDisabled(fdid))
+                trow.check:SetScript("OnClick", function(self)
+                    if not db.packOverrides[packKey] then
+                        db.packOverrides[packKey] = { disabled = {} }
+                    end
+                    if not db.packOverrides[packKey].disabled then
+                        db.packOverrides[packKey].disabled = {}
+                    end
+                    local dis = db.packOverrides[packKey].disabled
+                    if self:GetChecked() then
+                        if dbd and dbd[fdid] then
+                            dis[fdid] = false
+                        else
+                            dis[fdid] = nil
+                        end
+                    else
+                        if dis[fdid] == false then
+                            dis[fdid] = nil
+                        else
+                            dis[fdid] = true
+                        end
+                    end
+                    if not next(dis) then
+                        db.packOverrides[packKey] = nil
+                    end
+                end)
+
+                local localFdid = fdid
+                trow.playBtn:SetText("Play")
+                trow.playBtn:SetScript("OnClick", function(self)
+                    if previewingFdid == localFdid then
+                        StopActivePreview()
+                    else
+                        StopActivePreview()
+                        previewingFdid = localFdid
+                        previewBtnRef  = self
+                        self:SetText("Stop")
+                        if ns.PreviewTrack then ns.PreviewTrack(localFdid) end
+                    end
+                end)
+
+                activeTrks[#activeTrks + 1] = trow
+                y = y + TRACK_ROW_H
+            end
+
+            y = y + 4
+        end
+    end
+
+    packScrollChild:SetHeight(math.max(y, 1))
+end
+
+-- ----- build the canvas frame ---------------------------------
+
+local function InitPacksPanel()
+    packListFrame = CreateFrame("Frame", "EoQT_PacksPanel", UIParent)
+
+    local title = packListFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("Music Packs")
+
+    local desc = packListFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
+    desc:SetText("Enable or disable individual tracks per pack, and preview them in-game. Click a pack name to expand it.")
+    desc:SetWidth(540)
+    desc:SetJustifyH("LEFT")
+
+    local scrollFrame = CreateFrame("ScrollFrame", "EoQT_PacksPanelScroll", packListFrame, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT",     desc,          "BOTTOMLEFT",  0, -10)
+    scrollFrame:SetPoint("BOTTOMRIGHT", packListFrame, "BOTTOMRIGHT", -26,  8)
+
+    packScrollChild = CreateFrame("Frame", nil, scrollFrame)
+    packScrollChild:SetWidth(scrollFrame:GetWidth() or 560)
+    scrollFrame:SetScrollChild(packScrollChild)
+    scrollFrame:SetScript("OnSizeChanged", function(self, w)
+        packScrollChild:SetWidth(w)
+    end)
+
+    packListFrame:SetScript("OnShow", function() RefreshPackList() end)
+    packListFrame:SetScript("OnHide", function() StopActivePreview() end)
+
+    local subCategory = Settings.RegisterCanvasLayoutSubcategory(category, packListFrame, "Music Packs")
     subCategory.ID = subCategory:GetID()
 end
 
@@ -602,4 +779,5 @@ function ns.InitOptions()
     ns.settingsCategoryID = category:GetID()
 
     InitZoneMapper()
+    InitPacksPanel()
 end

@@ -83,6 +83,93 @@ ns.Tracks = {
     GL_ShalandisWalkUni01      = 53516,
     GL_ShalandisWalkUni02      = 53517,
     GL_ShalandisWalkUni03      = 53518,
+
+    -- Midnight > Silvermoon City (general rotation) -------
+    MN_SilvermoonCityA         = 7681120,
+    MN_SilvermoonCityB         = 7681122,
+    MN_SilvermoonCityC         = 7681124,
+    MN_SilvermoonCityD         = 7681126,
+    MN_SilvermoonCityE         = 7681128,
+    MN_SilvermoonCityF         = 7713432,
+    MN_SilvermoonCityG         = 7713434,
+    MN_SilvermoonCityH         = 7681130,
+    MN_SilvermoonCityI         = 7713436,
+    MN_SilvermoonCityJ         = 7713438,
+
+    -- Midnight > Silvermoon City (Horde area) -------------
+    MN_SilvermoonHordeA        = 7698322,
+    MN_SilvermoonHordeB        = 7698324,
+    MN_SilvermoonHordeC        = 7698326,
+
+    -- Midnight > Murder Row --------------------------------
+    MN_MurderRowA              = 7681088,
+    MN_MurderRowB              = 7681090,
+    MN_MurderRowC              = 7681092,
+    MN_MurderRowD              = 7681094,
+
+    -- Midnight > Silvermoon Inn ----------------------------
+    MN_SilvermoonInnA          = 7698330,
+    MN_SilvermoonInnH          = 7698332,
+
+    -- Midnight > Eversong Woods — Base outdoor (day) ------
+    MN_EversongBaseDayA        = 7690511,
+    MN_EversongBaseDayB        = 7690521,
+    MN_EversongBaseDayC        = 7690525,
+    MN_EversongBaseDayD        = 7690531,
+    MN_EversongBaseDayE        = 7690533,
+
+    -- Midnight > Eversong Woods — Base outdoor (night) ----
+    MN_EversongBaseNightA      = 7690509,
+    MN_EversongBaseNightB      = 7690513,
+    MN_EversongBaseNightC      = 7690515,
+    MN_EversongBaseNightD      = 7690517,
+    MN_EversongBaseNightE      = 7690529,
+
+    -- Midnight > Eversong Woods — Base (day+night shared) -
+    MN_EversongBaseUni01       = 7690523,
+
+    -- Midnight > Eversong Woods — Hub Village -------------
+    MN_EversongVillageA        = 7682352,
+    MN_EversongVillageB        = 7690519,
+    MN_EversongVillageC        = 7690527,
+
+    -- Midnight > Sunstrider Isle (day) --------------------
+    MN_SunstriderDayA          = 7682354,
+    MN_SunstriderDayB          = 7682358,
+    MN_SunstriderDayC          = 7682364,
+
+    -- Midnight > Sunstrider Isle (night) ------------------
+    MN_SunstriderNightA        = 7682356,
+    MN_SunstriderNightB        = 7682360,
+    MN_SunstriderNightC        = 7682362,
+
+    -- Midnight > Windrunner Village -----------------------
+    MN_WindrunnerA             = 7698334,
+    MN_WindrunnerB             = 7698336,
+    MN_WindrunnerC             = 7698338,
+    MN_WindrunnerD             = 7698340,
+    MN_WindrunnerE             = 7698342,
+    MN_WindrunnerF             = 7698344,
+
+    -- Midnight > Tranquillien -----------------------------
+    MN_TranquillienA           = 7713993,
+
+    -- Midnight > Quel'Danas -------------------------------
+    MN_QuelDanasA              = 7726828,
+    MN_SunwellA                = 7726826,
+
+    -- Midnight > Twilight's Blade (dark sub-area of Eversong) --
+    -- Files: mus_120_twilights_blade_{a,c,d,h}.mp3 (b/e/f/g not in SoundKit)
+    MN_TwilightsBladeA         = 7681218,
+    MN_TwilightsBladeC         = 7681222,
+    MN_TwilightsBladeD         = 7681224,
+    MN_TwilightsBladeH         = 7681228,
+
+    -- Midnight > Atal'abasi (ancient troll ruins in Eversong) -
+    -- Files: mus_120_atalabasi_{b,c,d}.mp3 (a not in SoundKit)
+    MN_AtalAbasiB              = 7682282,
+    MN_AtalAbasiC              = 7682284,
+    MN_AtalAbasiD              = 7682286,
 }
 
 -- ============================================================
@@ -141,4 +228,89 @@ ns.TrackDurations = {
     [53516] = 131.7,   -- GL_ShalandisWalkUni01
     [53517] = 104.0,   -- GL_ShalandisWalkUni02
     [53518] =  67.8,   -- GL_ShalandisWalkUni03
+
+    -- Midnight > Silvermoon City
+    [7681120] =  93.9,  -- MN_SilvermoonCityA
+    [7681122] =  73.8,  -- MN_SilvermoonCityB
+    [7681124] =  79.8,  -- MN_SilvermoonCityC
+    [7681126] =  94.2,  -- MN_SilvermoonCityD
+    [7681128] =  96.0,  -- MN_SilvermoonCityE
+    [7681130] = 127.2,  -- MN_SilvermoonCityH
+    [7713432] = 100.4,  -- MN_SilvermoonCityF
+    [7713434] = 103.6,  -- MN_SilvermoonCityG
+    [7713436] = 124.3,  -- MN_SilvermoonCityI
+    [7713438] =  45.5,  -- MN_SilvermoonCityJ
+
+    -- Midnight > Silvermoon Horde
+    [7698322] = 134.5,  -- MN_SilvermoonHordeA
+    [7698324] = 103.6,  -- MN_SilvermoonHordeB
+    [7698326] = 143.7,  -- MN_SilvermoonHordeC
+
+    -- Midnight > Murder Row
+    [7681088] =  86.4,  -- MN_MurderRowA
+    [7681090] =  54.1,  -- MN_MurderRowB
+    [7681092] =  67.1,  -- MN_MurderRowC
+    [7681094] =  65.5,  -- MN_MurderRowD
+
+    -- Midnight > Silvermoon Inn
+    [7698330] = 170.7,  -- MN_SilvermoonInnA
+    [7698332] = 171.5,  -- MN_SilvermoonInnH
+
+    -- Midnight > Eversong Woods — Base (day)
+    [7690511] = 120.5,  -- MN_EversongBaseDayA
+    [7690521] = 150.3,  -- MN_EversongBaseDayB
+    [7690525] = 106.4,  -- MN_EversongBaseDayC
+    [7690531] = 104.0,  -- MN_EversongBaseDayD
+    [7690533] = 180.6,  -- MN_EversongBaseDayE
+
+    -- Midnight > Eversong Woods — Base (night)
+    [7690509] = 111.6,  -- MN_EversongBaseNightA
+    [7690513] = 149.7,  -- MN_EversongBaseNightB
+    [7690515] = 121.3,  -- MN_EversongBaseNightC
+    [7690517] = 108.8,  -- MN_EversongBaseNightD
+    [7690529] = 156.0,  -- MN_EversongBaseNightE
+
+    -- Midnight > Eversong Woods — Base (shared)
+    [7690523] = 106.9,  -- MN_EversongBaseUni01
+
+    -- Midnight > Eversong Woods — Hub Village
+    [7682352] = 160.1,  -- MN_EversongVillageA
+    [7690519] =  99.0,  -- MN_EversongVillageB
+    [7690527] = 133.2,  -- MN_EversongVillageC
+
+    -- Midnight > Sunstrider Isle (day)
+    [7682354] =  96.2,  -- MN_SunstriderDayA
+    [7682358] = 171.0,  -- MN_SunstriderDayB
+    [7682364] = 160.1,  -- MN_SunstriderDayC
+
+    -- Midnight > Sunstrider Isle (night)
+    [7682356] = 190.0,  -- MN_SunstriderNightA
+    [7682360] = 121.5,  -- MN_SunstriderNightB
+    [7682362] = 141.7,  -- MN_SunstriderNightC
+
+    -- Midnight > Windrunner Village
+    [7698334] = 154.9,  -- MN_WindrunnerA
+    [7698336] = 178.6,  -- MN_WindrunnerB
+    [7698338] = 199.8,  -- MN_WindrunnerC
+    [7698340] = 137.9,  -- MN_WindrunnerD
+    [7698342] = 270.9,  -- MN_WindrunnerE
+    [7698344] = 203.8,  -- MN_WindrunnerF
+
+    -- Midnight > Tranquillien
+    [7713993] = 170.9,  -- MN_TranquillienA
+
+    -- Midnight > Quel'Danas
+    [7726828] = 215.9,  -- MN_QuelDanasA
+    [7726826] = 196.9,  -- MN_SunwellA
+
+    -- Midnight > Twilight's Blade
+    [7681218] =  92.3,  -- MN_TwilightsBladeA
+    [7681222] =  95.1,  -- MN_TwilightsBladeC
+    [7681224] =  61.6,  -- MN_TwilightsBladeD
+    [7681228] = 159.4,  -- MN_TwilightsBladeH
+
+    -- Midnight > Atal'abasi Ruins
+    [7682282] = 110.3,  -- MN_AtalAbasiB
+    [7682284] = 147.0,  -- MN_AtalAbasiC
+    [7682286] = 135.9,  -- MN_AtalAbasiD
 }

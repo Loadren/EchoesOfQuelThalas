@@ -39,9 +39,11 @@ frame:RegisterEvent("CVAR_UPDATE")
 
 local enabled            = true
 local isPlaying          = false
+local isPreviewing       = false
 local currentZoneId      = nil
 local currentConfig      = nil
 local currentGroup       = nil
+local currentPackKey     = nil
 local lastTrack          = nil
 local introPlayed        = false
 local rotateTicker       = nil
@@ -120,7 +122,7 @@ local function ResolveConfig(zoneId, zoneEntry)
     return nil, nil, nil
 end
 
-local function BuildPool(config)
+local function BuildPool(config, packKey)
     local pool = {}
     local timed = IsDaytime() and config.day or config.night
     if timed then
@@ -129,11 +131,25 @@ local function BuildPool(config)
     if config.any then
         for _, id in ipairs(config.any) do pool[#pool + 1] = id end
     end
-    return pool
+    local ov  = packKey and db and db.packOverrides and db.packOverrides[packKey]
+    local dis = ov and ov.disabled
+    local dbd = config.disabledByDefault
+    if not dis and not dbd then return pool end
+    local filtered = {}
+    for _, id in ipairs(pool) do
+        local userSet = dis and dis[id]
+        -- tri-state: true = force off, false = force on, nil = use pack default
+        if userSet ~= true then
+            if userSet == false or not (dbd and dbd[id]) then
+                filtered[#filtered + 1] = id
+            end
+        end
+    end
+    return filtered
 end
 
-local function PickTrack(config)
-    local pool = BuildPool(config)
+local function PickTrack(config, packKey)
+    local pool = BuildPool(config, packKey)
     if #pool == 0 then return nil end
     if #pool == 1 then
         lastTrack = pool[1]
@@ -181,6 +197,7 @@ local function HardStop()
     currentZoneId = nil
     currentConfig = nil
     currentGroup = nil
+    currentPackKey = nil
     lastTrack = nil
 end
 
@@ -196,6 +213,7 @@ local function FadeOutThenStop()
     currentZoneId = nil
     currentConfig = nil
     currentGroup = nil
+    currentPackKey = nil
     lastTrack = nil
 
     PlayMusic(SILENCE_TRACK)
@@ -226,7 +244,7 @@ local function ScheduleRotation(track, dur)
         rotateTicker = C_Timer.NewTimer(GetSilenceGap(), function()
             rotateTicker = nil
             if not isPlaying or not currentConfig then return end
-            local next = PickTrack(currentConfig)
+            local next = PickTrack(currentConfig, currentGroup)
             if not next then return end
             local nextDur = DURATIONS[next] or DEFAULT_DUR
             PlayMusic(next)
@@ -242,7 +260,7 @@ local function BeginPlayback(zoneId, effectiveConfig, zoneName, introTrack, grou
         track = introTrack
         introPlayed = true
     else
-        track = PickTrack(effectiveConfig)
+        track = PickTrack(effectiveConfig, groupKey)
     end
     if not track then return end
 
@@ -254,6 +272,7 @@ local function BeginPlayback(zoneId, effectiveConfig, zoneName, introTrack, grou
     currentZoneId = zoneId
     currentConfig = effectiveConfig
     currentGroup = groupKey
+    currentPackKey = groupKey
     isPlaying = true
 
     local dur = DURATIONS[track] or DEFAULT_DUR
@@ -354,6 +373,7 @@ local function CheckZone()
 end
 
 local function ScheduleCheck()
+    if isPreviewing then return end
     if pendingCheck then return end
     pendingCheck = C_Timer.NewTimer(0.5, function()
         pendingCheck = nil
@@ -364,6 +384,23 @@ end
 ns.ForceCheckZone = function()
     if pendingCheck then pendingCheck:Cancel(); pendingCheck = nil end
     CheckZone()
+end
+
+ns.PreviewTrack = function(fdid)
+    isPreviewing = true
+    CancelTimers()
+    PlayMusic(fdid)
+end
+
+ns.StopPreview = function()
+    isPreviewing = false
+    local mapId = C_Map.GetBestMapForUnit("player")
+    local zoneId = ns.ResolveZone(mapId)
+    if zoneId then
+        ns.ForceCheckZone()
+    else
+        StopMusic()
+    end
 end
 
 ns.SetEnabled = function(val)
@@ -391,6 +428,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         if db.silenceGap == nil then db.silenceGap = 4 end
         if db.crossfadeSec == nil then db.crossfadeSec = 5 end
         if db.zoneOverrides == nil then db.zoneOverrides = {} end
+        if db.packOverrides == nil then db.packOverrides = {} end
         enabled = db.enabled
         ns.db = db
 
