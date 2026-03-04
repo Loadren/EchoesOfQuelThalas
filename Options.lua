@@ -52,12 +52,12 @@ local function GetPackLabel(key, defaultPackKey)
     if key == "NONE" then return "|cffFF4444None|r" end
     if not key or key == "DEFAULT" then
         if defaultPackKey then
-            local pack = PACKS[defaultPackKey]
+            local pack = (ns.GetPack and ns.GetPack(defaultPackKey)) or PACKS[defaultPackKey]
             return "|cff88cc88" .. (pack and pack.label or defaultPackKey) .. "|r"
         end
         return "|cff888888—|r"
     end
-    local pack = PACKS[key]
+    local pack = (ns.GetPack and ns.GetPack(key)) or PACKS[key]
     return pack and pack.label or key
 end
 
@@ -66,13 +66,19 @@ local function PackDropdownOptions(includeDefault, defaultPackKey)
     if includeDefault then
         local hint = "Default"
         if defaultPackKey then
-            local pack = PACKS[defaultPackKey]
+            local pack = ns.GetPack and ns.GetPack(defaultPackKey) or PACKS[defaultPackKey]
             hint = "Default (" .. (pack and pack.label or defaultPackKey) .. ")"
         end
         items[#items + 1] = { key = "DEFAULT", label = hint }
     end
     for _, k in ipairs(PACK_ORDER) do
         items[#items + 1] = { key = k, label = PACKS[k].label }
+    end
+    -- Custom packs from SavedVariables
+    if ns.db and ns.db.customPacks then
+        for k, pack in pairs(ns.db.customPacks) do
+            items[#items + 1] = { key = k, label = (pack.label or k) .. " *" }
+        end
     end
     items[#items + 1] = { key = "NONE", label = "None (disabled)" }
     return items
@@ -464,19 +470,26 @@ end
 -- 3. Music Packs (Canvas Subcategory)
 -- ============================================================
 
+local RefreshPackList  -- forward declaration; defined below
+
 local packListFrame, packScrollChild
-local packHdrPool   = {}
-local packTrkPool   = {}
-local activeHdrs    = {}
-local activeTrks    = {}
-local expandedPacks = {}
+local customSectionHdr  -- persistent, never pooled
+local packHdrPool    = {}
+local packTrkPool    = {}
+local customHdrPool  = {}
+local customTrkPool  = {}
+local activeHdrs     = {}
+local activeTrks     = {}
+local activeCustomH  = {}
+local activeCustomT  = {}
+local expandedPacks  = {}
 local previewingFdid = nil
 local previewBtnRef  = nil
 
 -- ----- track helpers ------------------------------------------
 
 local function GetAllPackTracks(packKey)
-    local pack = PACKS[packKey]
+    local pack = (ns.GetPack and ns.GetPack(packKey)) or PACKS[packKey]
     if not pack then return {} end
     local seen, tracks = {}, {}
     local function addList(list)
@@ -490,6 +503,19 @@ local function GetAllPackTracks(packKey)
     addList(pack.night)
     addList(pack.any)
     return tracks
+end
+
+-- Returns a sorted list of all known FDIDs with names, grouped by prefix.
+local TRACK_GROUPS_CACHE = nil
+local function GetAllTracksSorted()
+    if TRACK_GROUPS_CACHE then return TRACK_GROUPS_CACHE end
+    local list = {}
+    for name, id in pairs(ns.Tracks) do
+        list[#list + 1] = { id = id, name = name }
+    end
+    table.sort(list, function(a, b) return a.name < b.name end)
+    TRACK_GROUPS_CACHE = list
+    return list
 end
 
 local function StopActivePreview()
@@ -537,6 +563,34 @@ local function ReleasePackHdrs()
     wipe(activeHdrs)
 end
 
+local function ReleaseCustomHdrs()
+    for _, row in ipairs(activeCustomH) do
+        row:Hide()
+        row:ClearAllPoints()
+        row:SetScript("OnClick", nil)
+        if row.renameBtn then row.renameBtn:SetScript("OnClick", nil) end
+        if row.deleteBtn then row.deleteBtn:SetScript("OnClick", nil) end
+        customHdrPool[#customHdrPool + 1] = row
+    end
+    wipe(activeCustomH)
+end
+
+local function ReleaseCustomTrks()
+    for _, row in ipairs(activeCustomT) do
+        row:Hide()
+        row:ClearAllPoints()
+        if row._isAddBtn then
+            row:SetScript("OnClick", nil)
+            -- add buttons are not pooled; they are recreated each render
+        else
+            row.playBtn:SetScript("OnClick", nil)
+            row.removeBtn:SetScript("OnClick", nil)
+            customTrkPool[#customTrkPool + 1] = row
+        end
+    end
+    wipe(activeCustomT)
+end
+
 -- ----- track row recycling ------------------------------------
 
 local function AcquirePackTrk(parent)
@@ -580,17 +634,236 @@ local function ReleasePackTrks()
     wipe(activeTrks)
 end
 
+-- Acquire a custom pack header row (has renameBtn + deleteBtn instead of countStr)
+local function AcquireCustomHdr(parent)
+    local row = tremove(customHdrPool)
+    if not row then
+        row = CreateFrame("Button", nil, parent)
+        row:SetHeight(PACK_HDR_H)
+        row:SetNormalFontObject(GameFontNormal)
+        row:SetHighlightTexture("Interface/QuestFrame/UI-QuestTitleHighlight", "ADD")
+
+        row.arrow = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        row.arrow:SetPoint("LEFT", 4, 0)
+        row.arrow:SetWidth(14)
+        row.arrow:SetJustifyH("LEFT")
+
+        row.nameStr = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        row.nameStr:SetPoint("LEFT", row.arrow, "RIGHT", 2, 0)
+        row.nameStr:SetJustifyH("LEFT")
+
+        row.deleteBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.deleteBtn:SetSize(54, 20)
+        row.deleteBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+        row.deleteBtn:SetText("Delete")
+
+        row.renameBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.renameBtn:SetSize(54, 20)
+        row.renameBtn:SetPoint("RIGHT", row.deleteBtn, "LEFT", -4, 0)
+        row.renameBtn:SetText("Rename")
+    end
+    row:SetParent(parent)
+    row:Show()
+    return row
+end
+
+-- Acquire a custom pack track row (no checkbox — all tracks always enabled;
+-- has a removeBtn to remove the track from the custom pack)
+local function AcquireCustomTrk(parent)
+    local row = tremove(customTrkPool)
+    if not row then
+        row = CreateFrame("Frame", nil, parent)
+        row:SetHeight(TRACK_ROW_H)
+
+        row.nameLabel = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.nameLabel:SetPoint("LEFT", 8, 0)
+        row.nameLabel:SetWidth(280)
+        row.nameLabel:SetJustifyH("LEFT")
+        row.nameLabel:SetWordWrap(false)
+
+        row.durLabel = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.durLabel:SetPoint("LEFT", row.nameLabel, "RIGHT", 4, 0)
+        row.durLabel:SetWidth(50)
+        row.durLabel:SetJustifyH("RIGHT")
+
+        row.playBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.playBtn:SetSize(44, 20)
+        row.playBtn:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+
+        row.removeBtn = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+        row.removeBtn:SetSize(20, 20)
+        row.removeBtn:SetPoint("RIGHT", row.playBtn, "LEFT", -4, 0)
+        row.removeBtn:SetText("×")
+    end
+    row:SetParent(parent)
+    row:Show()
+    return row
+end
+
+-- ----- static popup dialogs for custom packs -----------------
+
+StaticPopupDialogs["EOQT_NEW_PACK"] = {
+    text        = "Enter a name for the new custom pack:",
+    button1     = "Create",
+    button2     = "Cancel",
+    hasEditBox  = true,
+    maxLetters  = 48,
+    OnAccept    = function(self)
+        local name = self.EditBox:GetText():trim()
+        if name == "" then return end
+        local key = "cp_" .. time()
+        ns.db.customPacks[key] = { label = name, any = {} }
+        expandedPacks[key] = true
+        RefreshPackList()
+    end,
+    timeout     = 0,
+    whileDead   = true,
+    hideOnEscape = true,
+}
+
+StaticPopupDialogs["EOQT_RENAME_PACK"] = {
+    text        = "New name for this pack:",
+    button1     = "Rename",
+    button2     = "Cancel",
+    hasEditBox  = true,
+    maxLetters  = 48,
+    OnAccept    = function(self)
+        local name = self.EditBox:GetText():trim()
+        if name == "" then return end
+        local key = self.data
+        if ns.db.customPacks[key] then
+            ns.db.customPacks[key].label = name
+            RefreshPackList()
+        end
+    end,
+    timeout     = 0,
+    whileDead   = true,
+    hideOnEscape = true,
+}
+
+StaticPopupDialogs["EOQT_DELETE_PACK"] = {
+    text        = "Delete custom pack \"%s\"? This cannot be undone.",
+    button1     = "Delete",
+    button2     = "Cancel",
+    OnAccept    = function(self)
+        local key = self.data
+        ns.db.customPacks[key] = nil
+        expandedPacks[key] = nil
+        RefreshPackList()
+    end,
+    timeout     = 0,
+    whileDead   = true,
+    hideOnEscape = true,
+}
+
+-- Track picker: a simple scrollable popup listing all tracks not yet in the pack.
+local pickerFrame = nil
+
+local function ShowTrackPicker(packKey, onPicked)
+    if not pickerFrame then
+        pickerFrame = CreateFrame("Frame", "EoQT_TrackPicker", UIParent, "BackdropTemplate")
+        pickerFrame:SetSize(400, 380)
+        pickerFrame:SetPoint("CENTER")
+        pickerFrame:SetFrameStrata("DIALOG")
+        pickerFrame:SetBackdrop({
+            bgFile   = "Interface/DialogFrame/UI-DialogBox-Background",
+            edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
+            edgeSize = 16,
+            insets   = { left = 4, right = 4, top = 4, bottom = 4 },
+        })
+        pickerFrame:EnableMouse(true)
+        pickerFrame:SetMovable(true)
+        pickerFrame:RegisterForDrag("LeftButton")
+        pickerFrame:SetScript("OnDragStart", pickerFrame.StartMoving)
+        pickerFrame:SetScript("OnDragStop",  pickerFrame.StopMovingOrSizing)
+
+        local titleTxt = pickerFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        titleTxt:SetPoint("TOP", 0, -12)
+        titleTxt:SetText("Add Track")
+        pickerFrame.titleTxt = titleTxt
+
+        local closeBtn = CreateFrame("Button", nil, pickerFrame, "UIPanelCloseButton")
+        closeBtn:SetPoint("TOPRIGHT", -4, -4)
+        closeBtn:SetScript("OnClick", function() pickerFrame:Hide() end)
+
+        local sf = CreateFrame("ScrollFrame", nil, pickerFrame, "UIPanelScrollFrameTemplate")
+        sf:SetPoint("TOPLEFT",     pickerFrame, "TOPLEFT",     8,  -36)
+        sf:SetPoint("BOTTOMRIGHT", pickerFrame, "BOTTOMRIGHT", -26,  8)
+        pickerFrame.scrollFrame = sf
+
+        local sc = CreateFrame("Frame", nil, sf)
+        sc:SetWidth(sf:GetWidth() or 360)
+        sf:SetScrollChild(sc)
+        sf:SetScript("OnSizeChanged", function(self, w) sc:SetWidth(w) end)
+        pickerFrame.scrollChild = sc
+    end
+
+    -- Populate the picker with tracks not yet in the pack
+    local sc = pickerFrame.scrollChild
+    -- Release any previous rows
+    for i = sc:GetNumChildren(), 1, -1 do
+        local c = select(i, sc:GetChildren())
+        if c then c:Hide() end
+    end
+
+    local pack = ns.db.customPacks[packKey]
+    if not pack then pickerFrame:Hide(); return end
+
+    local existing = {}
+    if pack.any then
+        for _, id in ipairs(pack.any) do existing[id] = true end
+    end
+
+    local allTracks = GetAllTracksSorted()
+    local y = 0
+    local ROW_H = 22
+    for _, entry in ipairs(allTracks) do
+        if not existing[entry.id] then
+            local btn = CreateFrame("Button", nil, sc)
+            btn:SetHeight(ROW_H)
+            btn:SetPoint("TOPLEFT", sc, "TOPLEFT", 0, -y)
+            btn:SetPoint("RIGHT",   sc, "RIGHT",   0,  0)
+            btn:SetHighlightTexture("Interface/QuestFrame/UI-QuestTitleHighlight", "ADD")
+
+            local lbl = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            lbl:SetPoint("LEFT", 8, 0)
+            lbl:SetText(entry.name)
+            lbl:SetWidth(260)
+            lbl:SetJustifyH("LEFT")
+
+            local dur = DURATIONS and DURATIONS[entry.id]
+            local durLbl = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            durLbl:SetPoint("RIGHT", -8, 0)
+            durLbl:SetText(dur and string.format("%ds", math.floor(dur)) or "?")
+
+            local capturedId = entry.id
+            btn:SetScript("OnClick", function()
+                onPicked(capturedId)
+                pickerFrame:Hide()
+            end)
+
+            y = y + ROW_H
+        end
+    end
+    sc:SetHeight(math.max(y, 1))
+
+    pickerFrame:Show()
+end
+
 -- ----- main render --------------------------------------------
 
-local function RefreshPackList()
+RefreshPackList = function()
     if not packScrollChild or not ns.db then return end
     StopActivePreview()
     ReleasePackHdrs()
     ReleasePackTrks()
+    ReleaseCustomHdrs()
+    ReleaseCustomTrks()
 
     local db = ns.db
     local y  = 0
 
+    -- ---- Built-in packs ----
     for _, packKey in ipairs(PACK_ORDER) do
         local pack   = PACKS[packKey]
         local tracks = GetAllPackTracks(packKey)
@@ -684,6 +957,135 @@ local function RefreshPackList()
         end
     end
 
+    -- ---- Custom packs section header (persistent frame, never pooled) ----
+    y = y + 8
+
+    customSectionHdr:SetParent(packScrollChild)
+    customSectionHdr:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", 0, -y)
+    customSectionHdr:SetPoint("RIGHT",   packScrollChild, "RIGHT",   0,  0)
+    customSectionHdr:Show()
+    y = y + PACK_HDR_H
+
+    -- ---- Custom pack entries ----
+    local hasCustom = false
+    -- Sort by label for stable ordering
+    local customList = {}
+    for k, cp in pairs(db.customPacks) do
+        customList[#customList + 1] = { key = k, pack = cp }
+    end
+    table.sort(customList, function(a, b)
+        return (a.pack.label or a.key) < (b.pack.label or b.key)
+    end)
+
+    for _, entry in ipairs(customList) do
+        hasCustom = true
+        local cpKey  = entry.key
+        local cp     = entry.pack
+        local isOpen = expandedPacks[cpKey]
+        local anyList = cp.any or {}
+
+        local hdr = AcquireCustomHdr(packScrollChild)
+        hdr:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", 0, -y)
+        hdr:SetPoint("RIGHT",   packScrollChild, "RIGHT",   0,  0)
+        hdr.arrow:SetText(isOpen and "▼" or "▶")
+        hdr.nameStr:SetText(cp.label or cpKey)
+
+        local capturedKey = cpKey
+        hdr:SetScript("OnClick", function()
+            expandedPacks[capturedKey] = not expandedPacks[capturedKey]
+            RefreshPackList()
+        end)
+        hdr.renameBtn:SetScript("OnClick", function()
+            local dlg = StaticPopup_Show("EOQT_RENAME_PACK")
+            if dlg then
+                dlg.data = capturedKey
+                dlg.EditBox:SetText(ns.db.customPacks[capturedKey].label or "")
+                dlg.EditBox:HighlightText()
+            end
+        end)
+        hdr.deleteBtn:SetScript("OnClick", function()
+            local dlg = StaticPopup_Show("EOQT_DELETE_PACK",
+                ns.db.customPacks[capturedKey] and ns.db.customPacks[capturedKey].label or capturedKey)
+            if dlg then dlg.data = capturedKey end
+        end)
+
+        activeCustomH[#activeCustomH + 1] = hdr
+        y = y + PACK_HDR_H
+
+        if isOpen then
+            -- Existing tracks in the custom pack
+            for i, fdid in ipairs(anyList) do
+                local trow = AcquireCustomTrk(packScrollChild)
+                trow:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", INDENT, -y)
+                trow:SetPoint("RIGHT",   packScrollChild, "RIGHT",    0,      0)
+
+                local trackName = TRACK_NAMES[fdid] or tostring(fdid)
+                local dur = DURATIONS and DURATIONS[fdid]
+                trow.nameLabel:SetText(trackName)
+                trow.durLabel:SetText(dur and string.format("%ds", math.floor(dur)) or "?")
+
+                trow.playBtn:SetText("Play")
+                local localFdid = fdid
+                trow.playBtn:SetScript("OnClick", function(self)
+                    if previewingFdid == localFdid then
+                        StopActivePreview()
+                    else
+                        StopActivePreview()
+                        previewingFdid = localFdid
+                        previewBtnRef  = self
+                        self:SetText("Stop")
+                        if ns.PreviewTrack then ns.PreviewTrack(localFdid) end
+                    end
+                end)
+
+                local localIdx = i
+                local localKey = cpKey
+                trow.removeBtn:SetScript("OnClick", function()
+                    local list = ns.db.customPacks[localKey] and ns.db.customPacks[localKey].any
+                    if list then
+                        tremove(list, localIdx)
+                        RefreshPackList()
+                    end
+                end)
+
+                activeCustomT[#activeCustomT + 1] = trow
+                y = y + TRACK_ROW_H
+            end
+
+            -- "+ Add Track" button
+            local addBtn = CreateFrame("Button", nil, packScrollChild, "UIPanelButtonTemplate")
+            addBtn:SetSize(90, 20)
+            addBtn:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", INDENT, -y)
+            addBtn:SetText("+ Add Track")
+            local localKey = cpKey
+            addBtn:SetScript("OnClick", function()
+                ShowTrackPicker(localKey, function(fdid)
+                    if not ns.db.customPacks[localKey] then return end
+                    ns.db.customPacks[localKey].any = ns.db.customPacks[localKey].any or {}
+                    table.insert(ns.db.customPacks[localKey].any, fdid)
+                    RefreshPackList()
+                end)
+            end)
+            -- Store add button ref so ReleaseCustomTrks can hide it
+            addBtn._isAddBtn = true
+            activeCustomT[#activeCustomT + 1] = addBtn
+            y = y + TRACK_ROW_H + 4
+        end
+    end
+
+    if not hasCustom then
+        -- Placeholder text if no custom packs exist
+        local none = AcquirePackHdr(packScrollChild)
+        none:SetPoint("TOPLEFT", packScrollChild, "TOPLEFT", INDENT, -y)
+        none:SetPoint("RIGHT",   packScrollChild, "RIGHT",   0,  0)
+        none.arrow:SetText("")
+        none.nameStr:SetText("|cff888888No custom packs yet. Click + New Pack to create one.|r")
+        none.countStr:SetText("")
+        none:SetScript("OnClick", nil)
+        activeHdrs[#activeHdrs + 1] = none
+        y = y + PACK_HDR_H
+    end
+
     packScrollChild:SetHeight(math.max(y, 1))
 end
 
@@ -713,8 +1115,28 @@ local function InitPacksPanel()
         packScrollChild:SetWidth(w)
     end)
 
+    -- Build the persistent Custom Packs section header once
+    customSectionHdr = CreateFrame("Frame", nil, packScrollChild)
+    customSectionHdr:SetHeight(PACK_HDR_H)
+
+    local cshLabel = customSectionHdr:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    cshLabel:SetPoint("LEFT", 4, 0)
+    cshLabel:SetText("|cffFFD700Custom Packs|r")
+
+    local newPackBtn = CreateFrame("Button", nil, customSectionHdr, "UIPanelButtonTemplate")
+    newPackBtn:SetSize(80, 20)
+    newPackBtn:SetPoint("RIGHT", customSectionHdr, "RIGHT", -4, 0)
+    newPackBtn:SetText("+ New Pack")
+    newPackBtn:SetScript("OnClick", function()
+        StaticPopup_Show("EOQT_NEW_PACK")
+    end)
+
     packListFrame:SetScript("OnShow", function() RefreshPackList() end)
-    packListFrame:SetScript("OnHide", function() StopActivePreview() end)
+    packListFrame:SetScript("OnHide", function()
+        StopActivePreview()
+        if pickerFrame then pickerFrame:Hide() end
+        if customSectionHdr then customSectionHdr:Hide() end
+    end)
 
     local subCategory = Settings.RegisterCanvasLayoutSubcategory(category, packListFrame, "Music Packs")
     subCategory.ID = subCategory:GetID()

@@ -22,7 +22,7 @@ ns.ZoneMusic = {
         nameKey  = "SILVERMOON_CITY",
         pack     = "SILVERMOON",
         subzones = {
-            MURDER_ROW = "GHOSTLANDS_DARK",
+            MURDER_ROW = "GHOSTLANDS",
         },
     },
 
@@ -31,12 +31,23 @@ ns.ZoneMusic = {
         nameKey  = "EVERSONG_WOODS",
         pack     = "EVERSONG",
         subzones = {
-            WINDRUNNER_VILLAGE = "GHOSTLANDS_FULL",
-            WINDRUNNER_SPIRE   = "GHOSTLANDS_FULL",
+            WINDRUNNER_VILLAGE = "GHOSTLANDS",
+            WINDRUNNER_SPIRE   = "GHOSTLANDS",
             RUINS_OF_DEATHOLME = "QUELDANAS",
             LIGHTBLOOM_ATHRAN  = "SCORCHED",
             SUNCROWN_VILLAGE   = "SCORCHED",
             SUNCROWN_TREE      = "SCORCHED",
+        },
+    },
+
+    -- Ghostlands (95) — the narrow mountain pass between Eastern Plaguelands
+    -- and Quel'Thalas; still accessible in Midnight as its own zone.
+    [95] = {
+        nameKey  = "GHOSTLANDS",
+        pack     = "GHOSTLANDS",
+        subzones = {
+            SUNGRAZE_PEAK = "GHOSTLANDS",
+            HATCHET_HILLS = "GHOSTLANDS",
         },
     },
 

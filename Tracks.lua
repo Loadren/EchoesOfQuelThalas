@@ -158,6 +158,10 @@ ns.Tracks = {
     MN_QuelDanasA              = 7726828,
     MN_SunwellA                = 7726826,
 
+    -- Outland > Blood Elf Base (Tranquillien / Hatchet Hills area) --
+    OL_BloodElfBaseWalkUni01   = 53642,
+    OL_BloodElfBaseWalkUni02   = 53643,
+
     -- Midnight > Twilight's Blade (dark sub-area of Eversong) --
     -- Files: mus_120_twilights_blade_{a,c,d,h}.mp3 (b/e/f/g not in SoundKit)
     MN_TwilightsBladeA         = 7681218,
@@ -255,6 +259,10 @@ ns.TrackDurations = {
     -- Midnight > Silvermoon Inn
     [7698330] = 170.7,  -- MN_SilvermoonInnA
     [7698332] = 171.5,  -- MN_SilvermoonInnH
+
+    -- Outland > Blood Elf Base
+    [53642] = 120.0,  -- OL_BloodElfBaseWalkUni01
+    [53643] = 121.6,  -- OL_BloodElfBaseWalkUni02
 
     -- Midnight > Eversong Woods — Base (day)
     [7690511] = 120.5,  -- MN_EversongBaseDayA

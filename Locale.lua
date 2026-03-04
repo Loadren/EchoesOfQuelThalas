@@ -20,6 +20,7 @@ local _, ns = ...
 local names = {
     SILVERMOON_CITY   = "Silvermoon City",
     EVERSONG_WOODS    = "Eversong Woods",
+    GHOSTLANDS        = "Ghostlands",
     ISLE_OF_QUELDANAS = "Isle of Quel'Danas",
 }
 
@@ -31,6 +32,9 @@ local subzones = {
     LIGHTBLOOM_ATHRAN    = "Lightbloom Ath'Ran",
     SUNCROWN_VILLAGE     = "Suncrown Village",
     SUNCROWN_TREE        = "Suncrown Tree",
+    -- Ghostlands (map 95) subzones
+    SUNGRAZE_PEAK        = "Sungraze Peak",
+    HATCHET_HILLS        = "Hatchet Hills",
 }
 
 -- ============================================================

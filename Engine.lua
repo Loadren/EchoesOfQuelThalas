@@ -9,6 +9,12 @@ local SILENCE_TRACK = "Interface\\AddOns\\EchoesOfQuelThalas\\silence.ogg"
 local function GetSilenceGap()   return (ns.db and ns.db.silenceGap)   or 4 end
 local function GetCrossfadeSec() return (ns.db and ns.db.crossfadeSec) or 5 end
 
+-- Looks up a pack from built-in packs first, then user-created custom packs.
+local function GetPack(key)
+    if not key then return nil end
+    return PACKS[key] or (ns.db and ns.db.customPacks and ns.db.customPacks[key])
+end
+
 local TRACK_NAMES   = {}
 for name, id in pairs(ns.Tracks) do
     TRACK_NAMES[id] = name
@@ -94,7 +100,8 @@ local function ResolveConfig(zoneId, zoneEntry)
         local packKey = zoneOv.subzones[key]
         if packKey and packKey ~= "DEFAULT" then
             if packKey == "NONE" then return nil, key, nil end
-            if PACKS[packKey] then return PACKS[packKey], key, packKey end
+            local p = GetPack(packKey)
+            if p then return p, key, packKey end
         end
     end
 
@@ -103,20 +110,23 @@ local function ResolveConfig(zoneId, zoneEntry)
         local key = ns.SubzoneKeys[subzoneText]
         if key and zoneEntry.subzones[key] then
             local packKey = zoneEntry.subzones[key]
-            if PACKS[packKey] then return PACKS[packKey], key, packKey end
+            local p = GetPack(packKey)
+            if p then return p, key, packKey end
         end
     end
 
     -- 3. Zone-level pack override
     if zoneOv and zoneOv.pack and zoneOv.pack ~= "DEFAULT" then
         if zoneOv.pack == "NONE" then return nil, nil, nil end
-        if PACKS[zoneOv.pack] then return PACKS[zoneOv.pack], nil, zoneOv.pack end
+        local p = GetPack(zoneOv.pack)
+        if p then return p, nil, zoneOv.pack end
     end
 
     -- 4. Zone default pack
     local packKey = zoneEntry.pack
-    if packKey and PACKS[packKey] then
-        return PACKS[packKey], nil, packKey
+    if packKey then
+        local p = GetPack(packKey)
+        if p then return p, nil, packKey end
     end
 
     return nil, nil, nil
@@ -415,6 +425,7 @@ end
 
 ns.BuildPool = BuildPool
 ns.ResolveZone = ResolveZone
+ns.GetPack = GetPack
 
 -- ============================================================
 -- Events
@@ -429,6 +440,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         if db.crossfadeSec == nil then db.crossfadeSec = 5 end
         if db.zoneOverrides == nil then db.zoneOverrides = {} end
         if db.packOverrides == nil then db.packOverrides = {} end
+        if db.customPacks   == nil then db.customPacks   = {} end
         enabled = db.enabled
         ns.db = db
 
@@ -482,7 +494,7 @@ SlashCmdList["ECHOESOFQUELTHALAS"] = function(msg)
         local L = ns.L
         print(PREFIX .. "Configured zones:")
         for mapId, zoneEntry in pairs(ZONES) do
-            local packConfig = zoneEntry.pack and PACKS[zoneEntry.pack]
+            local packConfig = zoneEntry.pack and GetPack(zoneEntry.pack)
             local n = packConfig and #BuildPool(packConfig) or 0
             local subs = zoneEntry.subzones and 0 or nil
             if zoneEntry.subzones then
