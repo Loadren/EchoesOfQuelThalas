@@ -84,6 +84,11 @@ ns.Tracks = {
     GL_ShalandisWalkUni02      = 53517,
     GL_ShalandisWalkUni03      = 53518,
 
+    -- Midnight > Sanctum of Light (Silvermoon City subzone) -
+    MN_SanctumOfLightA         = 7681108,
+    MN_SanctumOfLightD         = 7681114,
+    MN_SanctumOfLightH         = 7681118,
+
     -- Midnight > Silvermoon City (general rotation) -------
     MN_SilvermoonCityA         = 7681120,
     MN_SilvermoonCityB         = 7681122,
@@ -232,6 +237,11 @@ ns.TrackDurations = {
     [53516] = 131.7,   -- GL_ShalandisWalkUni01
     [53517] = 104.0,   -- GL_ShalandisWalkUni02
     [53518] =  67.8,   -- GL_ShalandisWalkUni03
+
+    -- Midnight > Sanctum of Light
+    [7681108] =  82.9,  -- MN_SanctumOfLightA
+    [7681114] =  91.7,  -- MN_SanctumOfLightD
+    [7681118] = 192.2,  -- MN_SanctumOfLightH
 
     -- Midnight > Silvermoon City
     [7681120] =  93.9,  -- MN_SilvermoonCityA

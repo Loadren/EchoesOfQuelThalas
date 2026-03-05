@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Added Sanctum of Light tracks (`MN_SanctumOfLightA/D/H`) to Silvermoon packs — plays in the Sanctum of Light interior in Silvermoon City
+
 ## 1.3.0
 
 - Consolidated 18 packs down to 11 — three per main zone (TBC / Midnight / TBC + Midnight) for Silvermoon, Eversong, and Ghostlands, plus Scorched Lands and Isle of Quel'Danas utility packs

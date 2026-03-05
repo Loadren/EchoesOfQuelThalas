@@ -53,6 +53,9 @@ ns.MusicPacks = {
             T.MN_SilvermoonHordeA,
             T.MN_SilvermoonHordeB,
             T.MN_SilvermoonHordeC,
+            T.MN_SanctumOfLightA,
+            T.MN_SanctumOfLightD,
+            T.MN_SanctumOfLightH,
         },
     },
 
@@ -76,6 +79,9 @@ ns.MusicPacks = {
             T.MN_SilvermoonHordeA,
             T.MN_SilvermoonHordeB,
             T.MN_SilvermoonHordeC,
+            T.MN_SanctumOfLightA,
+            T.MN_SanctumOfLightD,
+            T.MN_SanctumOfLightH,
         },
         night = {
             T.ES_SilvermoonWalkNight01,
@@ -91,6 +97,12 @@ ns.MusicPacks = {
             T.MN_SilvermoonCityH,
             T.MN_SilvermoonCityI,
             T.MN_SilvermoonCityJ,
+            T.MN_SilvermoonHordeA,
+            T.MN_SilvermoonHordeB,
+            T.MN_SilvermoonHordeC,
+            T.MN_SanctumOfLightA,
+            T.MN_SanctumOfLightD,
+            T.MN_SanctumOfLightH,
         },
     },
 
