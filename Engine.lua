@@ -56,7 +56,6 @@ local rotateTicker       = nil
 local fadeTimer          = nil
 local pendingCheck       = nil
 local loadingScreenEnded = false
-local pausedForLoop      = false
 
 -- ============================================================
 -- Utilities
@@ -203,7 +202,6 @@ local function HardStop()
     CancelTimers()
     StopMusic()
     isPlaying = false
-    pausedForLoop = false
     currentZoneId = nil
     currentConfig = nil
     currentGroup = nil
@@ -219,7 +217,6 @@ local function FadeOutThenStop()
 
     CancelTimers()
     isPlaying = false
-    pausedForLoop = false
     currentZoneId = nil
     currentConfig = nil
     currentGroup = nil
@@ -244,13 +241,6 @@ local function ScheduleRotation(track, dur)
     if rotateTicker then rotateTicker:Cancel() end
     rotateTicker = C_Timer.NewTimer(dur, function()
         PlayMusic(SILENCE_TRACK)
-
-        if GetCVar("Sound_ZoneMusicNoDelay") ~= "1" then
-            rotateTicker = nil
-            pausedForLoop = true
-            return
-        end
-
         rotateTicker = C_Timer.NewTimer(GetSilenceGap(), function()
             rotateTicker = nil
             if not isPlaying or not currentConfig then return end
@@ -292,27 +282,19 @@ local function BeginPlayback(zoneId, effectiveConfig, zoneName, introTrack, grou
 end
 
 local function StartMusic(zoneId, effectiveConfig, zoneName, forceRestart, introTrack, groupKey)
-    local resuming = pausedForLoop
-            and isPlaying
-            and currentZoneId == zoneId
-            and currentConfig == effectiveConfig
-            and GetCVar("Sound_ZoneMusicNoDelay") == "1"
-
     -- Same group = seamless transition (keep current track playing)
-    if not forceRestart and not resuming and isPlaying
+    if not forceRestart and isPlaying
        and groupKey and currentGroup and groupKey == currentGroup then
         currentZoneId = zoneId
         currentConfig = effectiveConfig
         return
     end
 
-    if not forceRestart and not resuming and isPlaying
+    if not forceRestart and isPlaying
        and currentZoneId == zoneId
        and currentConfig == effectiveConfig then
         return
     end
-
-    pausedForLoop = false
 
     if fadeTimer then
         fadeTimer:Cancel()
@@ -343,7 +325,7 @@ local function CheckZone()
     loadingScreenEnded = false
 
     if not enabled or GetCVar("Sound_EnableMusic") == "0" then
-        if isPlaying or pausedForLoop then
+        if isPlaying then
             StopCurrentMusic(wasLoadingScreen)
         end
         return
@@ -351,7 +333,7 @@ local function CheckZone()
 
     local inInstance = IsInInstance()
     if inInstance then
-        if isPlaying or pausedForLoop then
+        if isPlaying then
             StopCurrentMusic(wasLoadingScreen)
         end
         return
@@ -461,7 +443,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
     end
 
     if event == "CVAR_UPDATE" then
-        if arg1 ~= "Sound_EnableMusic" and arg1 ~= "Sound_ZoneMusicNoDelay" then
+        if arg1 ~= "Sound_EnableMusic" then
             return
         end
     end

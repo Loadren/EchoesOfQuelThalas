@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.2
+
+- Fixed silence gap setting not working for most players — the gap timer now always fires between tracks regardless of the `Sound_ZoneMusicNoDelay` CVar
+- Extended `silence.ogg` from 5 s to 30 s so the gap timer always has room regardless of WoW's crossfade speed
+
 ## 1.3.1
 
 - Added Sanctum of Light tracks (`MN_SanctumOfLightA/D/H`) to Silvermoon packs — plays in the Sanctum of Light interior in Silvermoon City
