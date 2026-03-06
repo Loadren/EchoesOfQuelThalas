@@ -4,6 +4,7 @@
 
 - Fixed silence gap setting not working for most players — the gap timer now always fires between tracks regardless of the `Sound_ZoneMusicNoDelay` CVar
 - Extended `silence.ogg` from 5 s to 30 s so the gap timer always has room regardless of WoW's crossfade speed
+- Removed the Crossfade Duration slider — zone-exit fade is now a fixed 3 s
 
 ## 1.3.1
 

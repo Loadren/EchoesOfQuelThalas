@@ -6,8 +6,8 @@ local DURATIONS     = ns.TrackDurations
 local DEFAULT_DUR   = 90
 local SILENCE_TRACK = "Interface\\AddOns\\EchoesOfQuelThalas\\silence.ogg"
 
-local function GetSilenceGap()   return (ns.db and ns.db.silenceGap)   or 4 end
-local function GetCrossfadeSec() return (ns.db and ns.db.crossfadeSec) or 5 end
+local function GetSilenceGap() return (ns.db and ns.db.silenceGap) or 4 end
+local CROSSFADE_SEC = 3
 
 -- Looks up a pack from built-in packs first, then user-created custom packs.
 local function GetPack(key)
@@ -224,7 +224,7 @@ local function FadeOutThenStop()
     lastTrack = nil
 
     PlayMusic(SILENCE_TRACK)
-    fadeTimer = C_Timer.NewTimer(GetCrossfadeSec(), function()
+    fadeTimer = C_Timer.NewTimer(CROSSFADE_SEC, function()
         fadeTimer = nil
         StopMusic()
     end)
@@ -419,7 +419,7 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         db = EchoesOfQuelThalasDB
         if db.verbose == nil then db.verbose = false end
         if db.silenceGap == nil then db.silenceGap = 4 end
-        if db.crossfadeSec == nil then db.crossfadeSec = 5 end
+
         if db.zoneOverrides == nil then db.zoneOverrides = {} end
         if db.packOverrides == nil then db.packOverrides = {} end
         if db.customPacks   == nil then db.customPacks   = {} end

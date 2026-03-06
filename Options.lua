@@ -1186,17 +1186,6 @@ function ns.InitOptions()
             "Duration of silence between tracks (0 = no gap).")
     end
 
-    -- Crossfade Duration
-    do
-        local setting = Settings.RegisterAddOnSetting(category,
-            "EOQT_CROSSFADE", "crossfadeSec", db,
-            Settings.VarType.Number, "Crossfade Duration (seconds)", 5)
-        local options = Settings.CreateSliderOptions(1, 10, 1)
-        options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
-        Settings.CreateSlider(category, setting, options,
-            "How long the fade-to-silence transition lasts when leaving a configured zone.")
-    end
-
     Settings.RegisterAddOnCategory(category)
     ns.settingsCategoryID = category:GetID()
 
