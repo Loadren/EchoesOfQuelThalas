@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- Added a **Profiles** tab in the settings panel to export and import zone mappings
+- Export generates a compressed, printable string (via LibDeflate + LibSerialize) that can be copy-pasted or printed to chat in chunks with `/eoqt export`
+- Import accepts a profile string and lets you choose **Merge** (add only zones not already configured) or **Replace** (overwrite your entire zone mapping)
+
 ## 1.3.2
 
 - Fixed silence gap setting not working for most players — the gap timer now always fires between tracks regardless of the `Sound_ZoneMusicNoDelay` CVar

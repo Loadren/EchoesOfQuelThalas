@@ -5,6 +5,9 @@
 ## X-Curse-Project-ID: 1474276
 ## SavedVariables: EchoesOfQuelThalasDB
 
+lib/LibStub.lua
+lib/LibDeflate.lua
+lib/LibSerialize.lua
 Locale.lua
 Tracks.lua
 Packs.lua

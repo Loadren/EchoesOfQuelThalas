@@ -1143,6 +1143,215 @@ local function InitPacksPanel()
 end
 
 -- ============================================================
+-- Profiles panel — export / import zone mapping
+-- ============================================================
+
+local function InitProfilesPanel()
+    local PREFIX = "|cffFFD700Echoes of Quel'Thalas:|r "
+
+    local profileFrame = CreateFrame("Frame", "EoQT_ProfilesPanel", UIParent)
+
+    -- ---- Export section ----
+
+    local exportTitle = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    exportTitle:SetPoint("TOPLEFT", 16, -16)
+    exportTitle:SetText("Export")
+
+    local exportDesc = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    exportDesc:SetPoint("TOPLEFT", exportTitle, "BOTTOMLEFT", 0, -4)
+    exportDesc:SetText("Generate a compact string of your zone mapping to share with others.")
+    exportDesc:SetWidth(520)
+    exportDesc:SetJustifyH("LEFT")
+
+    local btnExport = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnExport:SetSize(150, 24)
+    btnExport:SetPoint("TOPLEFT", exportDesc, "BOTTOMLEFT", 0, -10)
+    btnExport:SetText("Export to String")
+
+    local btnPrintChat = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnPrintChat:SetSize(130, 24)
+    btnPrintChat:SetPoint("LEFT", btnExport, "RIGHT", 8, 0)
+    btnPrintChat:SetText("Print to Chat")
+
+    local exportSF = CreateFrame("ScrollFrame", nil, profileFrame, "UIPanelScrollFrameTemplate")
+    exportSF:SetPoint("TOPLEFT",    btnExport,    "BOTTOMLEFT",  0,  -8)
+    exportSF:SetPoint("TOPRIGHT",   profileFrame, "TOPRIGHT",  -26,   0)
+    exportSF:SetHeight(80)
+
+    local exportSC = CreateFrame("Frame", nil, exportSF)
+    exportSF:SetScrollChild(exportSC)
+    exportSC:SetHeight(76)
+
+    local exportEB = CreateFrame("EditBox", nil, exportSC)
+    exportEB:SetMultiLine(true)
+    exportEB:SetMaxLetters(0)
+    exportEB:SetFontObject(ChatFontNormal)
+    exportEB:SetHeight(76)
+    exportEB:SetPoint("TOPLEFT")
+    exportEB:SetAutoFocus(false)
+    exportEB:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+    exportSF:SetScript("OnSizeChanged", function(self, w)
+        exportSC:SetWidth(w)
+        exportEB:SetWidth(w)
+    end)
+
+    btnExport:SetScript("OnClick", function()
+        local str, err = ns.ExportProfile()
+        if str then
+            exportEB:SetText(str)
+            exportEB:HighlightText()
+            exportEB:SetFocus()
+        else
+            exportEB:SetText("Error: " .. (err or "nothing to export"))
+        end
+    end)
+
+    btnPrintChat:SetScript("OnClick", function()
+        local str = exportEB:GetText()
+        if not str or str == "" then
+            str = ns.ExportProfile()
+        end
+        if not str then
+            print(PREFIX .. "Nothing to export.")
+            return
+        end
+        local CHUNK = 200
+        local total = math.ceil(#str / CHUNK)
+        print(PREFIX .. "Profile export (" .. #str .. " chars, " .. total .. " message(s)):")
+        for i = 1, total do
+            DEFAULT_CHAT_FRAME:AddMessage(
+                string.format("[EoQT %d/%d] %s", i, total, str:sub((i - 1) * CHUNK + 1, i * CHUNK)))
+        end
+    end)
+
+    -- ---- Import section ----
+
+    local importTitle = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    importTitle:SetPoint("TOPLEFT", exportSF, "BOTTOMLEFT", 0, -20)
+    importTitle:SetText("Import")
+
+    local importDesc = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    importDesc:SetPoint("TOPLEFT", importTitle, "BOTTOMLEFT", 0, -4)
+    importDesc:SetText("Paste a profile string below, then click Import.")
+    importDesc:SetWidth(520)
+    importDesc:SetJustifyH("LEFT")
+
+    local importSF = CreateFrame("ScrollFrame", nil, profileFrame, "UIPanelScrollFrameTemplate")
+    importSF:SetPoint("TOPLEFT",  importDesc,   "BOTTOMLEFT", 0,  -8)
+    importSF:SetPoint("TOPRIGHT", profileFrame, "TOPRIGHT",  -26,  0)
+    importSF:SetHeight(80)
+
+    local importSC = CreateFrame("Frame", nil, importSF)
+    importSF:SetScrollChild(importSC)
+    importSC:SetHeight(76)
+
+    local importEB = CreateFrame("EditBox", nil, importSC)
+    importEB:SetMultiLine(true)
+    importEB:SetMaxLetters(0)
+    importEB:SetFontObject(ChatFontNormal)
+    importEB:SetHeight(76)
+    importEB:SetPoint("TOPLEFT")
+    importEB:SetAutoFocus(false)
+    importEB:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+    importSF:SetScript("OnSizeChanged", function(self, w)
+        importSC:SetWidth(w)
+        importEB:SetWidth(w)
+    end)
+
+    local btnImport = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnImport:SetSize(100, 24)
+    btnImport:SetPoint("TOPLEFT", importSF, "BOTTOMLEFT", 0, -8)
+    btnImport:SetText("Import")
+
+    -- ---- Merge / Replace / Cancel choice popup ----
+
+    local choiceFrame
+    local function ShowImportChoice(str)
+        if not choiceFrame then
+            choiceFrame = CreateFrame("Frame", "EoQT_ImportChoice", UIParent, "BackdropTemplate")
+            choiceFrame:SetSize(380, 150)
+            choiceFrame:SetPoint("CENTER")
+            choiceFrame:SetFrameStrata("DIALOG")
+            choiceFrame:SetBackdrop({
+                bgFile   = "Interface/DialogFrame/UI-DialogBox-Background",
+                edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
+                edgeSize = 16,
+                insets   = { left = 4, right = 4, top = 4, bottom = 4 },
+            })
+            choiceFrame:EnableMouse(true)
+
+            local titleTxt = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+            titleTxt:SetPoint("TOP", 0, -14)
+            titleTxt:SetText("Import Profile")
+
+            local bodyTxt = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            bodyTxt:SetPoint("TOP", titleTxt, "BOTTOM", 0, -10)
+            bodyTxt:SetText("How would you like to apply this profile?")
+            bodyTxt:SetWidth(340)
+            bodyTxt:SetJustifyH("CENTER")
+
+            local hintTxt = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            hintTxt:SetPoint("TOP", bodyTxt, "BOTTOM", 0, -6)
+            hintTxt:SetText("|cff888888Merge adds only zones not already configured.\nReplace overwrites your entire zone mapping.|r")
+            hintTxt:SetWidth(340)
+            hintTxt:SetJustifyH("CENTER")
+
+            local btnMerge = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+            btnMerge:SetSize(100, 24)
+            btnMerge:SetPoint("BOTTOMLEFT", choiceFrame, "BOTTOMLEFT", 16, 14)
+            btnMerge:SetText("Merge")
+            btnMerge:SetScript("OnClick", function()
+                choiceFrame:Hide()
+                local ok, err = ns.ImportProfile(choiceFrame.pendingStr, "merge")
+                if ok then
+                    print(PREFIX .. "Profile merged successfully.")
+                    RefreshMapper()
+                else
+                    print(PREFIX .. "Import failed: " .. (err or "unknown error"))
+                end
+            end)
+
+            local btnReplace = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+            btnReplace:SetSize(100, 24)
+            btnReplace:SetPoint("BOTTOM", choiceFrame, "BOTTOM", 0, 14)
+            btnReplace:SetText("Replace")
+            btnReplace:SetScript("OnClick", function()
+                choiceFrame:Hide()
+                local ok, err = ns.ImportProfile(choiceFrame.pendingStr, "replace")
+                if ok then
+                    print(PREFIX .. "Profile replaced successfully.")
+                    RefreshMapper()
+                else
+                    print(PREFIX .. "Import failed: " .. (err or "unknown error"))
+                end
+            end)
+
+            local btnCancel = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+            btnCancel:SetSize(100, 24)
+            btnCancel:SetPoint("BOTTOMRIGHT", choiceFrame, "BOTTOMRIGHT", -16, 14)
+            btnCancel:SetText("Cancel")
+            btnCancel:SetScript("OnClick", function() choiceFrame:Hide() end)
+        end
+
+        choiceFrame.pendingStr = str
+        choiceFrame:Show()
+    end
+
+    btnImport:SetScript("OnClick", function()
+        local str = importEB:GetText():gsub("%s+", "")
+        if str == "" then
+            print(PREFIX .. "Paste a profile string first.")
+            return
+        end
+        ShowImportChoice(str)
+    end)
+
+    Settings.RegisterCanvasLayoutSubcategory(category, profileFrame, "Profiles")
+end
+
+-- ============================================================
 -- ns.InitOptions — called synchronously from Engine.lua's
 -- ADDON_LOADED handler once ns.db is ready.
 -- ============================================================
@@ -1191,4 +1400,5 @@ function ns.InitOptions()
 
     InitZoneMapper()
     InitPacksPanel()
+    InitProfilesPanel()
 end

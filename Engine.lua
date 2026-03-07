@@ -410,6 +410,63 @@ ns.ResolveZone = ResolveZone
 ns.GetPack = GetPack
 
 -- ============================================================
+-- Profile export / import
+-- ============================================================
+
+local PROFILE_PREFIX = "EoQT:1:"
+
+ns.ExportProfile = function()
+    if not db or not db.zoneOverrides then return nil end
+    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
+    if not LibSerialize or not LibDeflate then return nil, "Libraries not loaded" end
+
+    local serialized = LibSerialize:Serialize(db.zoneOverrides)
+    local compressed = LibDeflate:CompressDeflate(serialized)
+    local encoded    = LibDeflate:EncodeForPrint(compressed)
+    return PROFILE_PREFIX .. encoded
+end
+
+ns.ImportProfile = function(str, mode)
+    if type(str) ~= "string" then return false, "Invalid input" end
+
+    if str:sub(1, #PROFILE_PREFIX) ~= PROFILE_PREFIX then
+        return false, "Not a valid EoQT profile string"
+    end
+    local encoded = str:sub(#PROFILE_PREFIX + 1)
+
+    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
+    if not LibSerialize or not LibDeflate then return false, "Libraries not loaded" end
+
+    local compressed = LibDeflate:DecodeForPrint(encoded)
+    if not compressed then return false, "Failed to decode string" end
+
+    local decompressed = LibDeflate:DecompressDeflate(compressed)
+    if not decompressed then return false, "Failed to decompress" end
+
+    local ok, data = LibSerialize:Deserialize(decompressed)
+    if not ok or type(data) ~= "table" then return false, "Failed to deserialize" end
+
+    if not db then return false, "Addon not loaded" end
+    db.zoneOverrides = db.zoneOverrides or {}
+
+    if mode == "replace" then
+        db.zoneOverrides = data
+    else
+        -- merge: only add keys not already present
+        for k, v in pairs(data) do
+            if db.zoneOverrides[k] == nil then
+                db.zoneOverrides[k] = v
+            end
+        end
+    end
+
+    if ns.ForceCheckZone then ns.ForceCheckZone() end
+    return true
+end
+
+-- ============================================================
 -- Events
 -- ============================================================
 
@@ -549,6 +606,21 @@ SlashCmdList["ECHOESOFQUELTHALAS"] = function(msg)
             print(PREFIX .. "Verbose mode off.")
         end
 
+    elseif msg == "export" then
+        local str, err = ns.ExportProfile()
+        if not str then
+            print(PREFIX .. "Export failed: " .. (err or "nothing to export"))
+            return
+        end
+        local CHUNK = 200
+        local total = math.ceil(#str / CHUNK)
+        print(PREFIX .. "Profile export (" .. #str .. " chars, " .. total .. " message(s)):")
+        for i = 1, total do
+            local chunk = str:sub((i - 1) * CHUNK + 1, i * CHUNK)
+            DEFAULT_CHAT_FRAME:AddMessage(
+                string.format("[EoQT %d/%d] %s", i, total, chunk))
+        end
+
     elseif msg == "" then
         enabled = not enabled
         db.enabled = enabled
@@ -561,6 +633,6 @@ SlashCmdList["ECHOESOFQUELTHALAS"] = function(msg)
         end
 
     else
-        print(PREFIX .. "Commands: /eoqt [on|off|zones|now|verbose|options]")
+        print(PREFIX .. "Commands: /eoqt [on|off|zones|now|verbose|options|export]")
     end
 end
