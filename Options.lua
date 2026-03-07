@@ -1143,23 +1143,174 @@ local function InitPacksPanel()
 end
 
 -- ============================================================
--- Profiles panel — export / import zone mapping
+-- Profiles panel — named profiles, export / import
 -- ============================================================
+
+StaticPopupDialogs["EOQT_RENAME_PROFILE"] = {
+    text        = "New name for this profile:",
+    button1     = "Rename",
+    button2     = "Cancel",
+    hasEditBox  = true,
+    maxLetters  = 48,
+    OnAccept    = function(self)
+        local name = self.EditBox:GetText():trim()
+        if name == "" then return end
+        ns.RenameProfile(self.data.key, name)
+        if self.data.refresh then self.data.refresh() end
+    end,
+    timeout     = 0,
+    whileDead   = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+StaticPopupDialogs["EOQT_IMPORT_NEW_PROFILE"] = {
+    text        = "Name for the new profile:",
+    button1     = "Import",
+    button2     = "Cancel",
+    hasEditBox  = true,
+    maxLetters  = 48,
+    OnAccept    = function(self)
+        local name = self.EditBox:GetText():trim()
+        if name == "" then name = "Imported Profile" end
+        local ok, result = ns.ImportIntoNewProfile(self.data.str, name)
+        if ok then
+            print(self.data.prefix .. "Profile \"" .. name .. "\" created successfully.")
+            if self.data.refresh then self.data.refresh() end
+        else
+            print(self.data.prefix .. "Import failed: " .. (result or "unknown error"))
+        end
+    end,
+    timeout     = 0,
+    whileDead   = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
 
 local function InitProfilesPanel()
     local PREFIX = "|cffFFD700Echoes of Quel'Thalas:|r "
 
     local profileFrame = CreateFrame("Frame", "EoQT_ProfilesPanel", UIParent)
 
+    -- ---- Profile List section ----
+
+    local profileListTitle = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    profileListTitle:SetPoint("TOPLEFT", 16, -16)
+    profileListTitle:SetText("Profiles")
+
+    local profileListDesc = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    profileListDesc:SetPoint("TOPLEFT", profileListTitle, "BOTTOMLEFT", 0, -4)
+    profileListDesc:SetText("Switch between named configurations. Each profile has its own zone mapping and music packs.")
+    profileListDesc:SetWidth(520)
+    profileListDesc:SetJustifyH("LEFT")
+
+    local profileListContainer = CreateFrame("Frame", nil, profileFrame)
+    profileListContainer:SetPoint("TOPLEFT", profileListDesc, "BOTTOMLEFT", 0, -10)
+    profileListContainer:SetPoint("TOPRIGHT", profileFrame, "TOPRIGHT", -16, 0)
+    profileListContainer:SetHeight(10)
+
+    local btnNewProfile = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnNewProfile:SetSize(130, 24)
+    btnNewProfile:SetText("+ New Profile")
+
+    local ROW_H = 28
+    local profileRows = {}
+
+    local function RefreshProfileList()
+        for _, row in ipairs(profileRows) do row:Hide() end
+        profileRows = {}
+
+        local list = ns.GetProfileList and ns.GetProfileList() or {}
+        local totalH = 0
+
+        for i, entry in ipairs(list) do
+            local row = CreateFrame("Frame", nil, profileListContainer)
+            row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
+            row:SetPoint("TOPRIGHT", profileListContainer, "TOPRIGHT", 0, -(i - 1) * ROW_H)
+            row:SetHeight(ROW_H)
+
+            local nameLabel = row:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            nameLabel:SetPoint("LEFT", 4, 0)
+            nameLabel:SetText(entry.active and ("|cffFFD700" .. entry.name .. "|r  (active)") or entry.name)
+
+            local capturedKey = entry.key
+            local lastLeftBtn = nil
+
+            local btnRename = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+            btnRename:SetSize(70, 22)
+            btnRename:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+            btnRename:SetText("Rename")
+            btnRename:SetScript("OnClick", function()
+                local dlg = StaticPopup_Show("EOQT_RENAME_PROFILE")
+                if dlg then
+                    dlg.data = { key = capturedKey, refresh = RefreshProfileList }
+                    dlg.EditBox:SetText(entry.name)
+                    dlg.EditBox:HighlightText()
+                end
+            end)
+            lastLeftBtn = btnRename
+
+            if not entry.active then
+                local btnSwitch = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+                btnSwitch:SetSize(60, 22)
+                btnSwitch:SetPoint("RIGHT", btnRename, "LEFT", -4, 0)
+                btnSwitch:SetText("Switch")
+                btnSwitch:SetScript("OnClick", function()
+                    ns.SwitchProfile(capturedKey)
+                    RefreshMapper()
+                    RefreshPackList()
+                    RefreshProfileList()
+                end)
+                lastLeftBtn = btnSwitch
+            end
+
+            if entry.key ~= "default" then
+                local btnDelete = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+                btnDelete:SetSize(60, 22)
+                btnDelete:SetPoint("RIGHT", lastLeftBtn, "LEFT", -4, 0)
+                btnDelete:SetText("Delete")
+                btnDelete:SetScript("OnClick", function()
+                    local ok, err = ns.DeleteProfile(capturedKey)
+                    if ok then
+                        RefreshMapper()
+                        RefreshPackList()
+                        RefreshProfileList()
+                    else
+                        print(PREFIX .. (err or "Could not delete profile."))
+                    end
+                end)
+            end
+
+            profileRows[#profileRows + 1] = row
+            totalH = i * ROW_H
+        end
+
+        profileListContainer:SetHeight(math.max(totalH, 10))
+        btnNewProfile:SetPoint("TOPLEFT", profileListContainer, "BOTTOMLEFT", 0, -8)
+    end
+
+    btnNewProfile:SetScript("OnClick", function()
+        local key = ns.CreateProfile("New Profile")
+        RefreshProfileList()
+        local dlg = StaticPopup_Show("EOQT_RENAME_PROFILE")
+        if dlg then
+            dlg.data = { key = key, refresh = RefreshProfileList }
+            dlg.EditBox:SetText("New Profile")
+            dlg.EditBox:HighlightText()
+        end
+    end)
+
+    profileFrame:SetScript("OnShow", RefreshProfileList)
+
     -- ---- Export section ----
 
     local exportTitle = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    exportTitle:SetPoint("TOPLEFT", 16, -16)
+    exportTitle:SetPoint("TOPLEFT", btnNewProfile, "BOTTOMLEFT", 0, -20)
     exportTitle:SetText("Export")
 
     local exportDesc = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     exportDesc:SetPoint("TOPLEFT", exportTitle, "BOTTOMLEFT", 0, -4)
-    exportDesc:SetText("Generate a compact string of your zone mapping to share with others.")
+    exportDesc:SetText("Generate a compact string of your active profile to share with others.")
     exportDesc:SetWidth(520)
     exportDesc:SetJustifyH("LEFT")
 
@@ -1233,7 +1384,7 @@ local function InitProfilesPanel()
 
     local importDesc = profileFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     importDesc:SetPoint("TOPLEFT", importTitle, "BOTTOMLEFT", 0, -4)
-    importDesc:SetText("Paste a profile string below, then click Import.")
+    importDesc:SetText("Paste a profile string below, then choose how to import it.")
     importDesc:SetWidth(520)
     importDesc:SetJustifyH("LEFT")
 
@@ -1260,11 +1411,6 @@ local function InitProfilesPanel()
         importEB:SetWidth(w)
     end)
 
-    local btnImport = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
-    btnImport:SetSize(100, 24)
-    btnImport:SetPoint("TOPLEFT", importSF, "BOTTOMLEFT", 0, -8)
-    btnImport:SetText("Import")
-
     -- ---- Merge / Replace / Cancel choice popup ----
 
     local choiceFrame
@@ -1284,7 +1430,7 @@ local function InitProfilesPanel()
 
             local titleTxt = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             titleTxt:SetPoint("TOP", 0, -14)
-            titleTxt:SetText("Import Profile")
+            titleTxt:SetText("Import into Current Profile")
 
             local bodyTxt = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             bodyTxt:SetPoint("TOP", titleTxt, "BOTTOM", 0, -10)
@@ -1308,6 +1454,7 @@ local function InitProfilesPanel()
                 if ok then
                     print(PREFIX .. "Profile merged successfully.")
                     RefreshMapper()
+                    RefreshPackList()
                 else
                     print(PREFIX .. "Import failed: " .. (err or "unknown error"))
                 end
@@ -1323,6 +1470,7 @@ local function InitProfilesPanel()
                 if ok then
                     print(PREFIX .. "Profile replaced successfully.")
                     RefreshMapper()
+                    RefreshPackList()
                 else
                     print(PREFIX .. "Import failed: " .. (err or "unknown error"))
                 end
@@ -1339,13 +1487,37 @@ local function InitProfilesPanel()
         choiceFrame:Show()
     end
 
-    btnImport:SetScript("OnClick", function()
+    -- ---- Import buttons ----
+
+    local btnImportCurrent = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnImportCurrent:SetSize(190, 24)
+    btnImportCurrent:SetPoint("TOPLEFT", importSF, "BOTTOMLEFT", 0, -8)
+    btnImportCurrent:SetText("Import into current profile")
+    btnImportCurrent:SetScript("OnClick", function()
         local str = importEB:GetText():gsub("%s+", "")
         if str == "" then
             print(PREFIX .. "Paste a profile string first.")
             return
         end
         ShowImportChoice(str)
+    end)
+
+    local btnImportNew = CreateFrame("Button", nil, profileFrame, "UIPanelButtonTemplate")
+    btnImportNew:SetSize(180, 24)
+    btnImportNew:SetPoint("LEFT", btnImportCurrent, "RIGHT", 8, 0)
+    btnImportNew:SetText("Import as new profile")
+    btnImportNew:SetScript("OnClick", function()
+        local str = importEB:GetText():gsub("%s+", "")
+        if str == "" then
+            print(PREFIX .. "Paste a profile string first.")
+            return
+        end
+        local dlg = StaticPopup_Show("EOQT_IMPORT_NEW_PROFILE")
+        if dlg then
+            dlg.data = { str = str, prefix = PREFIX, refresh = RefreshProfileList }
+            dlg.EditBox:SetText("Imported Profile")
+            dlg.EditBox:HighlightText()
+        end
     end)
 
     Settings.RegisterCanvasLayoutSubcategory(category, profileFrame, "Profiles")

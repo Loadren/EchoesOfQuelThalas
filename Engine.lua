@@ -413,56 +413,146 @@ ns.GetPack = GetPack
 -- Profile export / import
 -- ============================================================
 
-local PROFILE_PREFIX = "EoQT:1:"
+-- v2 payload: { zoneOverrides = {...}, customPacks = {...} }
+-- v1 payload (legacy): raw zoneOverrides table
+local PROFILE_PREFIX_V2 = "EoQT:2:"
+local PROFILE_PREFIX_V1 = "EoQT:1:"
+
+local function DecodeProfilePayload(str)
+    local encoded
+    local isV1 = false
+    if str:sub(1, #PROFILE_PREFIX_V2) == PROFILE_PREFIX_V2 then
+        encoded = str:sub(#PROFILE_PREFIX_V2 + 1)
+    elseif str:sub(1, #PROFILE_PREFIX_V1) == PROFILE_PREFIX_V1 then
+        encoded = str:sub(#PROFILE_PREFIX_V1 + 1)
+        isV1 = true
+    else
+        return nil, nil, "Not a valid EoQT profile string"
+    end
+
+    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
+    if not LibSerialize or not LibDeflate then return nil, nil, "Libraries not loaded" end
+
+    local compressed = LibDeflate:DecodeForPrint(encoded)
+    if not compressed then return nil, nil, "Failed to decode string" end
+
+    local decompressed = LibDeflate:DecompressDeflate(compressed)
+    if not decompressed then return nil, nil, "Failed to decompress" end
+
+    local ok, data = LibSerialize:Deserialize(decompressed)
+    if not ok or type(data) ~= "table" then return nil, nil, "Failed to deserialize" end
+
+    local zones  = isV1 and data or (data.zoneOverrides or {})
+    local cpacks = (not isV1) and (data.customPacks or {}) or {}
+    return zones, cpacks
+end
 
 ns.ExportProfile = function()
-    if not db or not db.zoneOverrides then return nil end
+    if not db then return nil end
     local LibSerialize = LibStub and LibStub("LibSerialize", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate then return nil, "Libraries not loaded" end
 
-    local serialized = LibSerialize:Serialize(db.zoneOverrides)
+    local payload = {
+        zoneOverrides = db.zoneOverrides or {},
+        customPacks   = db.customPacks   or {},
+    }
+    local serialized = LibSerialize:Serialize(payload)
     local compressed = LibDeflate:CompressDeflate(serialized)
     local encoded    = LibDeflate:EncodeForPrint(compressed)
-    return PROFILE_PREFIX .. encoded
+    return PROFILE_PREFIX_V2 .. encoded
 end
 
 ns.ImportProfile = function(str, mode)
     if type(str) ~= "string" then return false, "Invalid input" end
-
-    if str:sub(1, #PROFILE_PREFIX) ~= PROFILE_PREFIX then
-        return false, "Not a valid EoQT profile string"
-    end
-    local encoded = str:sub(#PROFILE_PREFIX + 1)
-
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
-    if not LibSerialize or not LibDeflate then return false, "Libraries not loaded" end
-
-    local compressed = LibDeflate:DecodeForPrint(encoded)
-    if not compressed then return false, "Failed to decode string" end
-
-    local decompressed = LibDeflate:DecompressDeflate(compressed)
-    if not decompressed then return false, "Failed to decompress" end
-
-    local ok, data = LibSerialize:Deserialize(decompressed)
-    if not ok or type(data) ~= "table" then return false, "Failed to deserialize" end
-
     if not db then return false, "Addon not loaded" end
-    db.zoneOverrides = db.zoneOverrides or {}
 
+    local zones, cpacks, err = DecodeProfilePayload(str)
+    if not zones then return false, err end
+
+    local prof = db.profiles[db.activeProfile]
     if mode == "replace" then
-        db.zoneOverrides = data
+        prof.zoneOverrides = zones
+        prof.customPacks   = cpacks
+        db.zoneOverrides   = zones
+        db.customPacks     = cpacks
     else
-        -- merge: only add keys not already present
-        for k, v in pairs(data) do
-            if db.zoneOverrides[k] == nil then
-                db.zoneOverrides[k] = v
-            end
+        for k, v in pairs(zones) do
+            if db.zoneOverrides[k] == nil then db.zoneOverrides[k] = v end
+        end
+        for k, v in pairs(cpacks) do
+            if db.customPacks[k] == nil then db.customPacks[k] = v end
         end
     end
 
     if ns.ForceCheckZone then ns.ForceCheckZone() end
+    return true
+end
+
+ns.ImportIntoNewProfile = function(str, name)
+    if type(str) ~= "string" then return false, "Invalid input" end
+    if not db then return false, "Addon not loaded" end
+
+    local zones, cpacks, err = DecodeProfilePayload(str)
+    if not zones then return false, err end
+
+    local key = "prof_" .. time()
+    db.profiles[key] = {
+        name          = name or "Imported Profile",
+        zoneOverrides = zones,
+        customPacks   = cpacks,
+    }
+    return true, key
+end
+
+-- ============================================================
+-- Profile management
+-- ============================================================
+
+ns.GetProfileList = function()
+    if not db or not db.profiles then return {} end
+    local list = {}
+    for k, p in pairs(db.profiles) do
+        list[#list + 1] = { key = k, name = p.name or k, active = (k == db.activeProfile) }
+    end
+    table.sort(list, function(a, b)
+        if a.key == "default" then return true end
+        if b.key == "default" then return false end
+        return (a.name or "") < (b.name or "")
+    end)
+    return list
+end
+
+ns.SwitchProfile = function(key)
+    if not db or not db.profiles or not db.profiles[key] then return false end
+    db.activeProfile = key
+    db.zoneOverrides = db.profiles[key].zoneOverrides
+    db.customPacks   = db.profiles[key].customPacks
+    ns.ForceCheckZone()
+    return true
+end
+
+ns.CreateProfile = function(name)
+    if not db then return nil end
+    local key = "prof_" .. time()
+    db.profiles[key] = { name = name or "New Profile", zoneOverrides = {}, customPacks = {} }
+    return key
+end
+
+ns.RenameProfile = function(key, newName)
+    if db and db.profiles and db.profiles[key] then
+        db.profiles[key].name = newName
+    end
+end
+
+ns.DeleteProfile = function(key)
+    if key == "default" then return false, "Cannot delete the Default profile" end
+    if not db or not db.profiles or not db.profiles[key] then return false, "Profile not found" end
+    db.profiles[key] = nil
+    if db.activeProfile == key then
+        ns.SwitchProfile("default")
+    end
     return true
 end
 
@@ -476,10 +566,31 @@ frame:SetScript("OnEvent", function(_, event, arg1)
         db = EchoesOfQuelThalasDB
         if db.verbose == nil then db.verbose = false end
         if db.silenceGap == nil then db.silenceGap = 4 end
-
-        if db.zoneOverrides == nil then db.zoneOverrides = {} end
         if db.packOverrides == nil then db.packOverrides = {} end
-        if db.customPacks   == nil then db.customPacks   = {} end
+
+        -- Migrate flat zoneOverrides/customPacks into profile structure
+        if db.profiles == nil then
+            db.profiles = {
+                default = {
+                    name          = "Default",
+                    zoneOverrides = db.zoneOverrides or {},
+                    customPacks   = db.customPacks   or {},
+                }
+            }
+            db.activeProfile = "default"
+            db.zoneOverrides = nil
+            db.customPacks   = nil
+        end
+        if not db.activeProfile or not db.profiles[db.activeProfile] then
+            db.activeProfile = "default"
+        end
+        if not db.profiles.default then
+            db.profiles.default = { name = "Default", zoneOverrides = {}, customPacks = {} }
+        end
+        -- Sync shortcuts so all existing call sites keep working
+        db.zoneOverrides = db.profiles[db.activeProfile].zoneOverrides
+        db.customPacks   = db.profiles[db.activeProfile].customPacks
+
         enabled = db.enabled
         ns.db = db
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.1
+
+- Added named profiles — create multiple independent configurations, each with its own zone mapping and custom packs
+- Switch between profiles live; the active profile's music starts immediately on switch
+- Import a profile string as a new named profile (choose a name at import time) or into the current profile (merge or replace)
+- Export always reflects the currently active profile
+
 ## 1.4.0
 
 - Added a **Profiles** tab in the settings panel to export and import zone mappings
