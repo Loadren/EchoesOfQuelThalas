@@ -179,6 +179,90 @@ ns.Tracks = {
     MN_AtalAbasiB              = 7682282,
     MN_AtalAbasiC              = 7682284,
     MN_AtalAbasiD              = 7682286,
+
+    -- Midnight > Lightbloom / Scorched Lands ---------------
+    MN_LightbloomA             = 7690535,
+    MN_LightbloomB             = 7690537,
+    MN_LightbloomC             = 7690539,
+    MN_LightbloomD             = 7690541,
+    MN_LightbloomTrollA        = 7682420,
+    MN_LightbloomTrollB        = 7682422,
+    MN_LightbloomTrollC        = 7690547,
+
+    -- Suramar / Nightborne ---------------------------------
+    SU_ForestA                 = 1417305,
+    SU_ForestB                 = 1417306,
+    SU_ForestC                 = 1417307,
+    SU_ForestD                 = 1417308,
+    SU_ForestE                 = 1417378,
+    SU_ForestF                 = 1417379,
+    SU_ForestG                 = 1417380,
+    SU_MoonGuardA              = 1417313,
+    SU_MoonGuardB              = 1417314,
+    SU_MoonGuardC              = 1417315,
+    SU_MoonGuardD              = 441527,
+    SU_MoonGuardE              = 441528,
+    SU_MoonGuardF              = 441529,
+    SU_SombreA                 = 1477357,
+    SU_SombreB                 = 1477358,
+    SU_SombreC                 = 1417371,
+    SU_SombreD                 = 1417372,
+    SU_SombreE                 = 1417373,
+    SU_SombreF                 = 1417374,
+    SU_SombreG                 = 1417375,
+    SU_CityOccupiedA           = 1417357,
+    SU_CityOccupiedB           = 1417358,
+    SU_CityOccupiedC           = 1417359,
+    SU_CityOccupiedD           = 1417360,
+    SU_CityOccupiedE           = 1504891,
+    SU_CityOccupiedF           = 1504892,
+    SU_CityMagnificentA        = 1477346,
+    SU_CityMagnificentB        = 1477347,
+    SU_CityMagnificentC        = 1477348,
+    SU_CityMagnificentD        = 1477349,
+    SU_CityMagnificentE        = 1477338,
+    SU_CityMagnificentF        = 1504890,
+    SU_CityMagnificentG        = 1477339,
+    SU_CorruptedA              = 1477341,
+    SU_CorruptedB              = 1477342,
+    SU_CorruptedC              = 1477332,
+    SU_CorruptedD              = 1477336,
+    SU_CorruptedE              = 1417370,
+    SU_CorruptedF              = 1417371,
+    SU_LegionA                 = 1417355,
+    SU_LegionB                 = 1417356,
+    SU_LegionC                 = 1417278,
+    SU_LegionD                 = 1417282,
+    SU_LegionE                 = 1417289,
+    SU_LegionF                 = 53307,
+    SU_LegionG                 = 53312,
+    SU_LegionH                 = 53317,
+    SU_LegionI                 = 53321,
+    SU_LegionJ                 = 53328,
+    SU_LegionK                 = 53336,
+
+    -- Telogrus / Void Elf ----------------------------------
+    VE_RendoreiA               = 1864282,
+    VE_RendoreiB               = 1864283,
+    VE_RendoreiC               = 1864284,
+    VE_RendoreiD               = 1864581,
+    VE_RendoreiE               = 1864580,
+    VE_RendoreiF               = 1864579,
+    VE_RendoreiG               = 1864578,
+    VE_ScenarioA               = 1720515,
+    VE_ScenarioB               = 1720517,
+    VE_ScenarioC               = 1720519,
+    VE_VoidstormA              = 7684188,
+    VE_VoidstormB              = 7684190,
+    VE_VoidstormC              = 7684192,
+    VE_VoidstormD              = 7684194,
+    VE_VoidstormE              = 7684196,
+    VE_VoidstormF              = 7684198,
+    VE_VoidstormG              = 7692212,
+    VE_VoidstormH              = 7713420,
+
+    -- Highborne --------------------------------------------
+    HB_LamentOfTheHighborne    = 53221,
 }
 
 -- ============================================================
@@ -331,4 +415,87 @@ ns.TrackDurations = {
     [7682282] = 110.3,  -- MN_AtalAbasiB
     [7682284] = 147.0,  -- MN_AtalAbasiC
     [7682286] = 135.9,  -- MN_AtalAbasiD
+
+    -- Midnight > Lightbloom / Scorched Lands
+    [7690535] = 195.3,  -- MN_LightbloomA
+    [7690537] = 194.1,  -- MN_LightbloomB
+    [7690539] = 157.4,  -- MN_LightbloomC
+    [7690541] = 193.5,  -- MN_LightbloomD
+    [7682420] =  76.8,  -- MN_LightbloomTrollA
+    [7682422] =  76.2,  -- MN_LightbloomTrollB
+    [7690547] = 157.4,  -- MN_LightbloomTrollC
+
+    -- Suramar / Nightborne
+    [1417305] =  99.8,  -- SU_ForestA
+    [1417306] = 100.5,  -- SU_ForestB
+    [1417307] = 101.0,  -- SU_ForestC
+    [1417308] = 101.0,  -- SU_ForestD
+    [1417378] = 120.2,  -- SU_ForestE
+    [1417379] = 113.1,  -- SU_ForestF
+    [1417380] = 124.1,  -- SU_ForestG
+    [1417313] =  69.1,  -- SU_MoonGuardA
+    [1417314] = 101.0,  -- SU_MoonGuardB
+    [1417315] = 111.9,  -- SU_MoonGuardC
+    [441527]  =  50.3,  -- SU_MoonGuardD
+    [441528]  =  66.0,  -- SU_MoonGuardE
+    [441529]  =  51.3,  -- SU_MoonGuardF
+    [1477357] =  46.4,  -- SU_SombreA
+    [1477358] = 126.7,  -- SU_SombreB
+    [1417371] =  66.4,  -- SU_SombreC / SU_CorruptedF
+    [1417372] =  96.4,  -- SU_SombreD
+    [1417373] =  96.4,  -- SU_SombreE
+    [1417374] =  82.0,  -- SU_SombreF
+    [1417375] =  91.8,  -- SU_SombreG
+    [1417357] = 121.7,  -- SU_CityOccupiedA
+    [1417358] = 119.9,  -- SU_CityOccupiedB
+    [1417359] = 125.1,  -- SU_CityOccupiedC
+    [1417360] = 157.2,  -- SU_CityOccupiedD
+    [1504891] =  63.8,  -- SU_CityOccupiedE
+    [1504892] =  95.3,  -- SU_CityOccupiedF
+    [1477346] =  69.5,  -- SU_CityMagnificentA
+    [1477347] =  69.5,  -- SU_CityMagnificentB
+    [1477348] =  65.2,  -- SU_CityMagnificentC
+    [1477349] =  92.5,  -- SU_CityMagnificentD
+    [1477338] =  69.2,  -- SU_CityMagnificentE
+    [1504890] =  59.3,  -- SU_CityMagnificentF
+    [1477339] =  70.0,  -- SU_CityMagnificentG
+    [1477341] =  82.1,  -- SU_CorruptedA
+    [1477342] =  99.6,  -- SU_CorruptedB
+    [1477332] =  74.8,  -- SU_CorruptedC
+    [1477336] =  85.1,  -- SU_CorruptedD
+    [1417370] = 102.9,  -- SU_CorruptedE
+    [1417355] =  84.5,  -- SU_LegionA
+    [1417356] =  66.0,  -- SU_LegionB
+    [1417278] =  66.7,  -- SU_LegionC
+    [1417282] =  82.8,  -- SU_LegionD
+    [1417289] =  64.7,  -- SU_LegionE
+    [53307]  =  74.2,  -- SU_LegionF
+    [53312]  =  78.2,  -- SU_LegionG
+    [53317]  =  65.5,  -- SU_LegionH
+    [53321]  =  88.6,  -- SU_LegionI
+    [53328]  =  63.6,  -- SU_LegionJ
+    [53336]  =  65.2,  -- SU_LegionK
+
+    -- Telogrus / Void Elf
+    [1864282] =  79.7,  -- VE_RendoreiA
+    [1864283] =  94.0,  -- VE_RendoreiB
+    [1864284] = 134.9,  -- VE_RendoreiC
+    [1864581] = 109.0,  -- VE_RendoreiD
+    [1864580] =  96.0,  -- VE_RendoreiE
+    [1864579] =  91.3,  -- VE_RendoreiF
+    [1864578] = 137.0,  -- VE_RendoreiG
+    [1720515] =  83.2,  -- VE_ScenarioA
+    [1720517] =  83.0,  -- VE_ScenarioB
+    [1720519] = 170.8,  -- VE_ScenarioC
+    [7684188] = 118.4,  -- VE_VoidstormA
+    [7684190] = 122.2,  -- VE_VoidstormB
+    [7684192] = 135.8,  -- VE_VoidstormC
+    [7684194] = 153.6,  -- VE_VoidstormD
+    [7684196] = 120.4,  -- VE_VoidstormE
+    [7684198] = 161.6,  -- VE_VoidstormF
+    [7692212] = 145.1,  -- VE_VoidstormG
+    [7713420] = 132.3,  -- VE_VoidstormH
+
+    -- Highborne
+    [53221]  = 171.2,  -- HB_LamentOfTheHighborne
 }
