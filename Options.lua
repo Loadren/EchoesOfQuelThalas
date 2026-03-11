@@ -7,6 +7,7 @@ local addonName, ns = ...
 -- Section 1: General settings  (vertical layout — native controls)
 -- Section 2: Zone mapping      (canvas subcategory — custom frame)
 -- Section 3: Music Packs       (canvas subcategory — custom frame)
+-- Section 4: Profiles          (canvas subcategory — custom frame)
 -- ============================================================
 
 local PACKS      = ns.MusicPacks
@@ -1143,7 +1144,7 @@ local function InitPacksPanel()
 end
 
 -- ============================================================
--- Profiles panel — named profiles, export / import
+-- 4. Profiles panel — named profiles, export / import
 -- ============================================================
 
 StaticPopupDialogs["EOQT_RENAME_PROFILE"] = {
@@ -1561,7 +1562,7 @@ function ns.InitOptions()
         local setting = Settings.RegisterAddOnSetting(category,
             "EOQT_SILENCE_GAP", "silenceGap", db,
             Settings.VarType.Number, "Silence Gap (seconds)", 4)
-        local options = Settings.CreateSliderOptions(0, 10, 1)
+        local options = Settings.CreateSliderOptions(0, 30, 1)
         options:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
         Settings.CreateSlider(category, setting, options,
             "Duration of silence between tracks (0 = no gap).")
