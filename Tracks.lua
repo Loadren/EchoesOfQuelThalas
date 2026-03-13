@@ -163,6 +163,24 @@ ns.Tracks = {
     MN_QuelDanasA              = 7726828,
     MN_SunwellA                = 7726826,
 
+    -- TBC > Sunwell Plateau / Magisters' Terrace ----------
+    SW_AssemblyChamberWalkUni01      = 53700,
+    SW_AssemblyChamberWalkUni02      = 53701,
+    SW_FelEnergyWalkUni01            = 53702,
+    SW_MagistersArrivalWalkUni01     = 53712,
+    SW_MagistersAsylumWalkUni01      = 53713,
+    SW_MagistersAsylumWalkUni02      = 53714,
+    SW_MagistersAsylumWalkUni03      = 53715,
+    SW_MagistersTerraceWalkUni01     = 53716,
+    SW_MagistersTerraceWalkUni02     = 53717,
+    SW_MagistersTerraceWalkUni03     = 53718,
+    SW_MagistersTerraceWalkUni04     = 53719,
+    SW_MagistersTerraceWalkUni05     = 53720,
+    SW_PlateauSunwellArrivalWalkUni01 = 53721,
+    SW_PlateauSunwellWalkUni01       = 53722,
+    SW_PlateauSunwellWalkUni02       = 53723,
+    SW_PlateauSunwellWalkUni03       = 53724,
+
     -- Outland > Blood Elf Base (Tranquillien / Hatchet Hills area) --
     OL_BloodElfBaseWalkUni01   = 53642,
     OL_BloodElfBaseWalkUni02   = 53643,
@@ -260,6 +278,9 @@ ns.Tracks = {
     VE_VoidstormF              = 7684198,
     VE_VoidstormG              = 7692212,
     VE_VoidstormH              = 7713420,
+
+    -- Pandaria > The Sunreavers ---------------------------
+    MOP_Sunreavers01           = 775231,
 
     -- Highborne --------------------------------------------
     HB_LamentOfTheHighborne    = 53221,
@@ -404,6 +425,27 @@ ns.TrackDurations = {
     -- Midnight > Quel'Danas
     [7726828] = 215.9,  -- MN_QuelDanasA
     [7726826] = 196.9,  -- MN_SunwellA
+
+    -- TBC > Sunwell Plateau / Magisters' Terrace
+    [53700] =  82.8,  -- SW_AssemblyChamberWalkUni01
+    [53701] =  88.1,  -- SW_AssemblyChamberWalkUni02
+    [53702] = 125.9,  -- SW_FelEnergyWalkUni01
+    [53712] =  87.6,  -- SW_MagistersArrivalWalkUni01
+    [53713] =  97.4,  -- SW_MagistersAsylumWalkUni01
+    [53714] =  95.1,  -- SW_MagistersAsylumWalkUni02
+    [53715] =  65.6,  -- SW_MagistersAsylumWalkUni03
+    [53716] =  88.6,  -- SW_MagistersTerraceWalkUni01
+    [53717] =  90.6,  -- SW_MagistersTerraceWalkUni02
+    [53718] =  89.8,  -- SW_MagistersTerraceWalkUni03
+    [53719] =  91.7,  -- SW_MagistersTerraceWalkUni04
+    [53720] = 123.6,  -- SW_MagistersTerraceWalkUni05
+    [53721] = 138.4,  -- SW_PlateauSunwellArrivalWalkUni01
+    [53722] =  85.1,  -- SW_PlateauSunwellWalkUni01
+    [53723] =  78.6,  -- SW_PlateauSunwellWalkUni02
+    [53724] =  90.0,  -- SW_PlateauSunwellWalkUni03
+
+    -- Pandaria > The Sunreavers
+    [775231] =  59.0,  -- MOP_Sunreavers01
 
     -- Midnight > Twilight's Blade
     [7681218] =  92.3,  -- MN_TwilightsBladeA
