@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.5
+
+- Isle of Quel'Danas now has three packs like other zones: (TBC), (Midnight), (TBC + Midnight); default mapping uses TBC
+- Replaced silent Midnight Quel'Danas/Sunwell/Tranquillien tracks with audible Parhelion Plaza set and classic TBC Quel'Danas tracks
+- Added `deploy.sh` script to copy the addon into your WoW AddOns folder for testing
+
 ## 1.4.1
 
 - Added named profiles — create multiple independent configurations, each with its own zone mapping and custom packs

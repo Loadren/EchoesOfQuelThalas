@@ -34,9 +34,11 @@ ns.ZoneMusic = {
             WINDRUNNER_VILLAGE = "GHOSTLANDS",
             WINDRUNNER_SPIRE   = "GHOSTLANDS",
             RUINS_OF_DEATHOLME = "DEATHOLME",
+            AMANI_PASS         = "ZULAMAN",
             LIGHTBLOOM_ATHRAN  = "SCORCHED",
             SUNCROWN_VILLAGE   = "SCORCHED",
             SUNCROWN_TREE      = "SCORCHED",
+            SILVERGLADE_REFUGE = "SILVERGLADE",
         },
     },
 

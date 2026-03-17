@@ -13,7 +13,7 @@ local T = ns.Tracks
 --   intro  = FileDataID            (optional, plays once)
 --
 -- Three packs per main zone: (TBC), (Midnight), (TBC + Midnight).
--- Subzone utility packs (SCORCHED, QUELDANAS) are listed after.
+-- Subzone utility packs are listed after.
 -- ============================================================
 
 ns.MusicPacks = {
@@ -162,7 +162,6 @@ ns.MusicPacks = {
             T.MN_EversongVillageA,
             T.MN_EversongVillageB,
             T.MN_EversongVillageC,
-            T.MN_TranquillienA,
         },
     },
 
@@ -210,7 +209,6 @@ ns.MusicPacks = {
             T.MN_EversongVillageA,
             T.MN_EversongVillageB,
             T.MN_EversongVillageC,
-            T.MN_TranquillienA,
         },
     },
 
@@ -398,17 +396,95 @@ ns.MusicPacks = {
     },
 
     QUELDANAS = {
-        label = "Isle of Quel'Danas",
+        label = "Isle of Quel'Danas (TBC)",
+        day = {
+            T.ES_RuinsWalkDay01,
+            T.ES_RuinsWalkDay02,
+            T.ES_RuinsWalkDay03,
+            T.ES_SunstriderWalkDay01,
+            T.ES_SunstriderWalkDay02,
+            T.ES_SunstriderWalkDay03,
+        },
+        night = {
+            T.ES_RuinsWalkNight01,
+            T.ES_RuinsWalkNight02,
+            T.ES_RuinsWalkNight03,
+            T.ES_SunstriderWalkNight01,
+            T.ES_SunstriderWalkNight02,
+            T.ES_SunstriderWalkNight03,
+        },
         any = {
-            T.GL_EversongDarkWalkUni01,
-            T.GL_EversongDarkWalkUni02,
-            T.GL_EversongDarkWalkUni03,
-            T.GL_EversongDarkWalkUni04,
-            T.GL_ScenicWalkUni01,
-            T.GL_ScenicWalkUni02,
-            T.GL_ScenicWalkUni03,
-            T.MN_QuelDanasA,
-            T.MN_SunwellA,
+            T.QD_QuelDanasWalkUni01,
+            T.QD_QuelDanasWalkUni02,
+        },
+    },
+
+    QUELDANAS_MIDNIGHT = {
+        label = "Isle of Quel'Danas (Midnight)",
+        any = {
+            T.MN_ParhelionPlazaA,
+            T.MN_ParhelionPlazaB,
+            T.MN_ParhelionPlazaC,
+            T.MN_ParhelionPlazaD,
+            T.MN_ParhelionPlazaE,
+            T.MN_ParhelionPlazaF,
+            T.MN_ParhelionPlazaG,
+            T.MN_ParhelionPlazaH,
+            T.MN_ParhelionPlazaI,
+        },
+    },
+
+    QUELDANAS_MIXED = {
+        label = "Isle of Quel'Danas (TBC + Midnight)",
+        day = {
+            T.ES_RuinsWalkDay01,
+            T.ES_RuinsWalkDay02,
+            T.ES_RuinsWalkDay03,
+            T.ES_SunstriderWalkDay01,
+            T.ES_SunstriderWalkDay02,
+            T.ES_SunstriderWalkDay03,
+        },
+        night = {
+            T.ES_RuinsWalkNight01,
+            T.ES_RuinsWalkNight02,
+            T.ES_RuinsWalkNight03,
+            T.ES_SunstriderWalkNight01,
+            T.ES_SunstriderWalkNight02,
+            T.ES_SunstriderWalkNight03,
+        },
+        any = {
+            T.QD_QuelDanasWalkUni01,
+            T.QD_QuelDanasWalkUni02,
+            T.MN_ParhelionPlazaA,
+            T.MN_ParhelionPlazaB,
+            T.MN_ParhelionPlazaC,
+            T.MN_ParhelionPlazaD,
+            T.MN_ParhelionPlazaE,
+            T.MN_ParhelionPlazaF,
+            T.MN_ParhelionPlazaG,
+            T.MN_ParhelionPlazaH,
+            T.MN_ParhelionPlazaI,
+        },
+    },
+
+    ZULAMAN = {
+        label = "Zul'Aman",
+        any = {
+            T.ZA_WalkUni01,
+            T.ZA_WalkUni02,
+            T.ZA_WalkUni03,
+            T.ZA_WalkUni04,
+            T.ZA_WalkUni05,
+            T.ZA_WalkUni06,
+        },
+    },
+
+    SILVERGLADE = {
+        label = "Silverglade Refuge",
+        any = {
+            T.SG_RefugeUni01,
+            T.SG_RefugeUni02,
+            T.SG_RefugeUni03,
         },
     },
 
@@ -522,6 +598,10 @@ ns.MusicPackOrder = {
     "DEATHOLME_MIDNIGHT",
     "DEATHOLME_MIXED",
     "QUELDANAS",
+    "QUELDANAS_MIDNIGHT",
+    "QUELDANAS_MIXED",
+    "ZULAMAN",
+    "SILVERGLADE",
     "SURAMAR",
     "TELOGRUS",
     "HIGHBORNE",

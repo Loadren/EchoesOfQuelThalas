@@ -156,12 +156,20 @@ ns.Tracks = {
     MN_WindrunnerE             = 7698342,
     MN_WindrunnerF             = 7698344,
 
-    -- Midnight > Tranquillien -----------------------------
-    MN_TranquillienA           = 7713993,
+    -- Midnight > Quel'Danas - Parhelion Plaza -------------
+    MN_ParhelionPlazaA         = 7681150,
+    MN_ParhelionPlazaB         = 7713426,
+    MN_ParhelionPlazaC         = 7713428,
+    MN_ParhelionPlazaD         = 7713430,
+    MN_ParhelionPlazaE         = 7692218,
+    MN_ParhelionPlazaF         = 7690573,
+    MN_ParhelionPlazaG         = 7691963,
+    MN_ParhelionPlazaH         = 7703712,
+    MN_ParhelionPlazaI         = 7703710,
 
-    -- Midnight > Quel'Danas -------------------------------
-    MN_QuelDanasA              = 7726828,
-    MN_SunwellA                = 7726826,
+    -- TBC > Quel'Danas ------------------------------------
+    QD_QuelDanasWalkUni01      = 53728,
+    QD_QuelDanasWalkUni02      = 53729,
 
     -- TBC > Sunwell Plateau / Magisters' Terrace ----------
     SW_AssemblyChamberWalkUni01      = 53700,
@@ -180,6 +188,19 @@ ns.Tracks = {
     SW_PlateauSunwellWalkUni01       = 53722,
     SW_PlateauSunwellWalkUni02       = 53723,
     SW_PlateauSunwellWalkUni03       = 53724,
+
+    -- TBC > Zul'Aman --------------------------------------
+    ZA_WalkUni01                     = 53825,
+    ZA_WalkUni02                     = 53826,
+    ZA_WalkUni03                     = 53827,
+    ZA_WalkUni04                     = 53828,
+    ZA_WalkUni05                     = 53829,
+    ZA_WalkUni06                     = 53830,
+
+    -- Midnight > Silverglade Refuge -----------------------
+    SG_RefugeUni01                   = 575714,
+    SG_RefugeUni02                   = 575715,
+    SG_RefugeUni03                   = 575716,
 
     -- Outland > Blood Elf Base (Tranquillien / Hatchet Hills area) --
     OL_BloodElfBaseWalkUni01   = 53642,
@@ -419,12 +440,20 @@ ns.TrackDurations = {
     [7698342] = 270.9,  -- MN_WindrunnerE
     [7698344] = 203.8,  -- MN_WindrunnerF
 
-    -- Midnight > Tranquillien
-    [7713993] = 170.9,  -- MN_TranquillienA
+    -- Midnight > Quel'Danas - Parhelion Plaza
+    [7681150] = 141.1,  -- MN_ParhelionPlazaA
+    [7713426] = 130.7,  -- MN_ParhelionPlazaB
+    [7713428] = 126.0,  -- MN_ParhelionPlazaC
+    [7713430] = 102.8,  -- MN_ParhelionPlazaD
+    [7692218] = 152.5,  -- MN_ParhelionPlazaE
+    [7690573] = 133.4,  -- MN_ParhelionPlazaF
+    [7691963] = 153.2,  -- MN_ParhelionPlazaG
+    [7703712] = 105.0,  -- MN_ParhelionPlazaH
+    [7703710] =  68.0,  -- MN_ParhelionPlazaI
 
-    -- Midnight > Quel'Danas
-    [7726828] = 215.9,  -- MN_QuelDanasA
-    [7726826] = 196.9,  -- MN_SunwellA
+    -- TBC > Quel'Danas
+    [53728] = 108.7,  -- QD_QuelDanasWalkUni01
+    [53729] =  84.0,  -- QD_QuelDanasWalkUni02
 
     -- TBC > Sunwell Plateau / Magisters' Terrace
     [53700] =  82.8,  -- SW_AssemblyChamberWalkUni01
@@ -443,6 +472,19 @@ ns.TrackDurations = {
     [53722] =  85.1,  -- SW_PlateauSunwellWalkUni01
     [53723] =  78.6,  -- SW_PlateauSunwellWalkUni02
     [53724] =  90.0,  -- SW_PlateauSunwellWalkUni03
+
+    -- TBC > Zul'Aman
+    [53825] = 113.8,  -- ZA_WalkUni01
+    [53826] =  74.5,  -- ZA_WalkUni02
+    [53827] = 108.6,  -- ZA_WalkUni03
+    [53828] =  70.5,  -- ZA_WalkUni04
+    [53829] =  90.5,  -- ZA_WalkUni05
+    [53830] = 113.9,  -- ZA_WalkUni06
+
+    -- Midnight > Silverglade Refuge
+    [575714] = 107.4,  -- SG_RefugeUni01
+    [575715] =  46.7,  -- SG_RefugeUni02
+    [575716] = 113.0,  -- SG_RefugeUni03
 
     -- Pandaria > The Sunreavers
     [775231] =  59.0,  -- MOP_Sunreavers01
