@@ -29,9 +29,11 @@ local subzones = {
     WINDRUNNER_VILLAGE   = "Windrunner Village",
     WINDRUNNER_SPIRE     = "Windrunner Spire",
     RUINS_OF_DEATHOLME   = "Ruins of Deatholme",
+    AMANI_PASS           = "Amani Pass",
     LIGHTBLOOM_ATHRAN    = "Lightbloom Ath'Ran",
     SUNCROWN_VILLAGE     = "Suncrown Village",
     SUNCROWN_TREE        = "Suncrown Tree",
+    SILVERGLADE_REFUGE   = "Silverglade Refuge",
     -- Ghostlands (map 95) subzones
     SUNGRAZE_PEAK        = "Sungraze Peak",
     HATCHET_HILLS        = "Hatchet Hills",
@@ -52,9 +54,11 @@ if locale == "frFR" then
     subzones.WINDRUNNER_VILLAGE   = "Coursevent"
     subzones.WINDRUNNER_SPIRE     = "Fl\195\168che de Coursevent"
     subzones.RUINS_OF_DEATHOLME   = "Ruines de Mortholme"
+    subzones.AMANI_PASS           = "Passage des Amani"
     subzones.LIGHTBLOOM_ATHRAN    = "Lum\195\169clat Ath'Ran"
     subzones.SUNCROWN_VILLAGE     = "Solcouronne"
     subzones.SUNCROWN_TREE        = "Arbre de Solcouronne"
+    subzones.SILVERGLADE_REFUGE   = "Refuge de Reflet-d\226\128\153Argent"
 
 elseif locale == "deDE" then
     names.SILVERMOON_CITY   = "Silbermond"
@@ -65,9 +69,11 @@ elseif locale == "deDE" then
     subzones.WINDRUNNER_VILLAGE   = "Windl\195\164uferdorf"
     subzones.WINDRUNNER_SPIRE     = "Windl\195\164uferturm"
     subzones.RUINS_OF_DEATHOLME   = "Ruinen der Todesfestung"
+    subzones.AMANI_PASS           = "Amanipass"
     subzones.LIGHTBLOOM_ATHRAN    = "Lichtbl\195\188te Ath'ran"
     subzones.SUNCROWN_VILLAGE     = "Sonnenkuppe"
     subzones.SUNCROWN_TREE        = "Der Sonnenkuppenbaum"
+    subzones.SILVERGLADE_REFUGE   = "Silberwiesenzuflucht"
 
 elseif locale == "esES" or locale == "esMX" then
     names.SILVERMOON_CITY   = "Ciudad de Lunargenta"
@@ -78,9 +84,11 @@ elseif locale == "esES" or locale == "esMX" then
     subzones.WINDRUNNER_VILLAGE   = "Aldea Brisaveloz"
     subzones.WINDRUNNER_SPIRE     = "Aguja Brisaveloz"
     subzones.RUINS_OF_DEATHOLME   = "Ruinas de la Ciudad de la Muerte"
+    subzones.AMANI_PASS           = "Paso de Amani"
     subzones.LIGHTBLOOM_ATHRAN    = "Ath'ran de Flor de Luz"
     subzones.SUNCROWN_VILLAGE     = "Aldea Corona del Sol"
     subzones.SUNCROWN_TREE        = "\195\129rbol de Corona del Sol"
+    subzones.SILVERGLADE_REFUGE   = "Refugio Claro de Plata"
 
 elseif locale == "ptBR" then
     names.SILVERMOON_CITY   = "Luaprata"
@@ -91,9 +99,11 @@ elseif locale == "ptBR" then
     subzones.WINDRUNNER_VILLAGE   = "Vila dos Correventos"
     subzones.WINDRUNNER_SPIRE     = "Pico dos Correventos"
     subzones.RUINS_OF_DEATHOLME   = "Ru\195\173nas da Cidadela da Morte"
+    subzones.AMANI_PASS           = "Desfiladeiro Amani"
     subzones.LIGHTBLOOM_ATHRAN    = "Ath'Ran de Floraluz"
     subzones.SUNCROWN_VILLAGE     = "Vila Corona Solar"
     subzones.SUNCROWN_TREE        = "\195\129rvore de Corona Solar"
+    subzones.SILVERGLADE_REFUGE   = "Ref\195\186gio Clararg\195\170nteo"
 
 elseif locale == "ruRU" then
     names.SILVERMOON_CITY   = "\208\155\209\131\208\189\208\190\209\129\208\178\208\181\209\130"
@@ -104,9 +114,11 @@ elseif locale == "ruRU" then
     subzones.WINDRUNNER_VILLAGE   = "\208\148\208\181\209\128\208\181\208\178\208\189\209\143 \208\146\208\181\209\130\209\128\208\190\208\186\209\128\209\139\208\187\209\139\209\133"
     subzones.WINDRUNNER_SPIRE     = "\208\168\208\191\208\184\208\187\208\184 \208\146\208\181\209\130\209\128\208\190\208\186\209\128\209\139\208\187\209\139\209\133"
     subzones.RUINS_OF_DEATHOLME   = "\208\160\209\131\208\184\208\189\209\139 \208\161\208\188\208\181\209\128\209\130\209\133\208\190\208\187\209\140\208\188\208\176"
+    subzones.AMANI_PASS           = "\208\159\208\181\209\128\208\181\208\178\208\176\208\187 \208\144\208\188\208\176\208\189\208\184"
     subzones.LIGHTBLOOM_ATHRAN    = "\208\161\208\178\208\181\209\130\208\190\209\134\208\178\208\181\209\130\208\189\209\139\208\185 \208\144\209\130'\208\160\208\176\208\189"
     subzones.SUNCROWN_VILLAGE     = "\208\148\208\181\209\128\208\181\208\178\208\189\209\143 \208\161\208\190\208\187\208\189\208\181\209\135\208\189\208\190\208\185 \208\154\208\190\209\128\208\190\208\189\209\139"
     subzones.SUNCROWN_TREE        = "\208\148\209\128\208\181\208\178\208\190 \208\161\208\190\208\187\208\189\208\181\209\135\208\189\208\190\208\185 \208\154\208\190\209\128\208\190\208\189\209\139"
+    subzones.SILVERGLADE_REFUGE   = "\208\159\209\128\208\184\209\142\209\130 \208\161\208\181\209\128\208\181\208\177\209\128\208\184\209\129\209\130\208\190\208\185 \208\159\208\190\208\187\209\143\208\189\209\139"
 
 elseif locale == "itIT" then
     names.SILVERMOON_CITY   = "Lunargenta"
@@ -117,9 +129,11 @@ elseif locale == "itIT" then
     subzones.WINDRUNNER_VILLAGE   = "Ventolesto"
     subzones.WINDRUNNER_SPIRE     = "Pinnacolo dei Ventolesto"
     subzones.RUINS_OF_DEATHOLME   = "Rovine di Mortorium"
+    subzones.AMANI_PASS           = "Passo degli Amani"
     subzones.LIGHTBLOOM_ATHRAN    = "Ath'ran della Fioritura di Luce"
     subzones.SUNCROWN_VILLAGE     = "Solcorona"
     subzones.SUNCROWN_TREE        = "Albero dei Solcorona"
+    subzones.SILVERGLADE_REFUGE   = "Rifugio di Radargento"
 
 elseif locale == "koKR" then
     names.SILVERMOON_CITY   = "\236\139\164\235\178\132\235\172\184"
@@ -130,9 +144,11 @@ elseif locale == "koKR" then
     subzones.WINDRUNNER_VILLAGE   = "\236\156\136\235\147\156\235\159\172\235\132\136 \235\167\136\236\157\132"
     subzones.WINDRUNNER_SPIRE     = "\236\156\136\235\147\156\235\159\172\235\132\136 \236\178\168\237\131\145"
     subzones.RUINS_OF_DEATHOLME   = "\235\141\176\236\134\148\235\166\132 \237\143\144\237\151\136"
+    subzones.AMANI_PASS           = "\236\149\132\235\167\136\235\139\136 \234\179\160\234\176\156"
     subzones.LIGHTBLOOM_ATHRAN    = "\235\185\155\235\167\140\234\176\156 \236\149\132\236\138\164\235\158\128"
     subzones.SUNCROWN_VILLAGE     = "\237\131\156\236\150\145\236\153\149\234\180\128 \235\167\136\236\157\132"
     subzones.SUNCROWN_TREE        = "\237\131\156\236\150\145\236\153\149\234\180\128 \235\130\152\235\172\180"
+    subzones.SILVERGLADE_REFUGE   = "\236\157\128\235\185\155\236\136\178 \237\148\188\235\130\156\236\178\152"
 
 elseif locale == "zhCN" then
     names.SILVERMOON_CITY   = "\233\147\182\230\156\136\229\159\142"
@@ -143,9 +159,11 @@ elseif locale == "zhCN" then
     subzones.WINDRUNNER_VILLAGE   = "\233\163\142\232\161\140\230\157\145"
     subzones.WINDRUNNER_SPIRE     = "\233\163\142\232\161\140\232\128\133\228\185\139\229\161\148"
     subzones.RUINS_OF_DEATHOLME   = "\230\136\180\231\180\162\229\167\134\229\186\159\229\162\159"
+    subzones.AMANI_PASS           = "\233\152\191\230\155\188\229\176\188\229\176\143\229\190\132"
     subzones.LIGHTBLOOM_ATHRAN    = "\229\133\137\231\187\189\233\152\191\230\150\175\229\133\176"
     subzones.SUNCROWN_VILLAGE     = "\230\151\165\229\134\149\230\157\145"
     subzones.SUNCROWN_TREE        = "\230\151\165\229\134\149\228\185\139\230\160\145"
+    subzones.SILVERGLADE_REFUGE   = "\233\147\182\230\158\151\233\129\191\233\154\190\230\137\128"
 
 elseif locale == "zhTW" then
     names.SILVERMOON_CITY   = "\233\138\128\230\156\136\229\159\142"
@@ -156,9 +174,11 @@ elseif locale == "zhTW" then
     subzones.WINDRUNNER_VILLAGE   = "\233\162\168\232\161\140\232\128\133\230\157\145"
     subzones.WINDRUNNER_SPIRE     = "\233\162\168\232\161\140\232\128\133\229\161\148"
     subzones.RUINS_OF_DEATHOLME   = "\230\173\187\228\186\161\228\185\139\229\159\159\229\187\162\229\162\159"
+    subzones.AMANI_PASS           = "\233\152\191\230\155\188\229\176\188\229\176\143\229\190\145"
     subzones.LIGHTBLOOM_ATHRAN    = "\229\133\137\231\182\187\233\152\191\230\150\175\230\156\151"
     subzones.SUNCROWN_VILLAGE     = "\230\151\165\229\134\160\230\157\145"
     subzones.SUNCROWN_TREE        = "\230\151\165\229\134\160\230\168\185"
+    subzones.SILVERGLADE_REFUGE   = "\233\138\128\230\158\151\233\129\191\233\155\163\230\137\128"
 end
 
 -- ============================================================
